@@ -1,0 +1,65 @@
+# depslib dependency file v1.0
+1748338221 source:d:\programming\modern-igraphics-main\imain.cpp
+	"iGraphics.h"
+
+1748338221 d:\programming\modern-igraphics-main\igraphics.h
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+	<unistd.h>
+	"glut.h"
+	"freeglut_ext.h"
+	<time.h>
+	<math.h>
+	<dirent.h>
+	<sys/stat.h>
+	"stb_image.h"
+	"stb_image_resize.h"
+
+1748338234 d:\programming\modern-igraphics-main\opengl\include\glut.h
+	"freeglut_std.h"
+
+1748338234 d:\programming\modern-igraphics-main\opengl\include\freeglut_std.h
+	<windows.h>
+	<EGL/egl.h>
+	<GLES/gl.h>
+	<GLES2/gl2.h>
+	<OpenGL/gl.h>
+	<OpenGL/glu.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<stdlib.h>
+
+1748338234 d:\programming\modern-igraphics-main\opengl\include\gl\gl.h
+
+1748338234 d:\programming\modern-igraphics-main\opengl\include\gl\glu.h
+	<GL/gl.h>
+
+1748338234 d:\programming\modern-igraphics-main\opengl\include\freeglut_ext.h
+	<stdarg.h>
+
+1748338234 d:\programming\modern-igraphics-main\opengl\include\stb_image.h
+	"stb_image.h"
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	<stddef.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<assert.h>
+	<stdint.h>
+	<emmintrin.h>
+	<intrin.h>
+	<arm_neon.h>
+
+1748338234 d:\programming\modern-igraphics-main\opengl\include\stb_image_resize.h
+	"stb_image_resize.h"
+	<stdint.h>
+	<assert.h>
+	<string.h>
+	<math.h>
+	<stdlib.h>
+
