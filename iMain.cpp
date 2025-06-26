@@ -1,31 +1,35 @@
 #include "iGraphics.h"
 #include<string.h>
+#include<math.h>
+#include<stdlib.h>
 
-Sprite players[6],opponents[6],gk[2],fball;
-Image ball[1],player[1],opponent[1]; 
-double length=120*6 , width = 90*6;
-int  timer=0,i,ii,gametime=0,tracktime=0;
+Sprite players[6],opponents[6],gk[2],fball, fields;
+Image ball[1],player[1],opponent[1],field[1]; 
+double length=120*6 , width = 90*6, gallary=40;
+long long int  timer=0,i,ii,gametime=0,tracktime=0;
 int level;
-double speed=0.5 ,gkspeed=0.35, passedballspeed=.8, shootballspeed=1, acceleration=-0.001, varAcceleration[2];
-double newplayer[6][4]={ {width/2,length*2/10},{width/6,length*2/10},{width*5/6,length*2/10},{width*2/6,length*7/20},{width*4/6,length*7/20} , {width/2,length/2} };
-double newopponent[6][4]={{width/2,length*8/10}, {width/6,length*8/10}, {width*5/6,length*8/10},{width*2/6,length*7/10},{width*4/6,length*7/10} , {width/2,length*6/10} };
-double newgk[2][2]={ {width/2,length/10},{width/2,length*9/10} };
+double speed=0.6 ,gkspeed=0.35, passedballspeed=0.8, shootballspeed=1, acceleration=-0.001, varAcceleration[2];
+double playerradius=8,ballradius=5,collidepos=5;
 double newball[4]={width/2,length/2};
-double gkpointer[2][2]={ {width/2,length/20},{width/2,length*19/20} };
-double playerpointer[6][4]={ {width/2,length*2/10},{width/6,length*2/10},{width*5/6,length*2/10},{width*2/6,length*7/20},{width*4/6,length*7/20} , {width/2,length/2} };
-double opponentpointer[6][4]={{width/2,length*8/10}, {width/6,length*8/10}, {width*5/6,length*8/10},{width*2/6,length*7/10},{width*4/6,length*7/10} , {width/2,length*6/10} };
+double gkpointer[2][2]={ {width/2,gallary+playerradius},{width/2,length-gallary-playerradius} };
+double newgk[2][2]={ {width/2,gallary+playerradius},{width/2,length-gallary-playerradius} };
+double playerposition[2][6][4]={{{width/2,length*8/10,width/2,length*8/10,}, {width/6,length*8/10,width/6,length*8/10}, {width*5/6,length*8/10,width*5/6,length*8/10},{width*2/6,length*7/10,width*2/6,length*7/10},{width*4/6,length*7/10,width*4/6,length*7/10} , {width/2,length*6/10,width/2,length*6/10} },{ {width/2,length*2/10,width/2,length*2/10},{width/6,length*2/10,width/6,length*2/10},{width*5/6,length*2/10,width*5/6,length*2/10},{width*2/6,length*7/20,width*2/6,length*7/20},{width*4/6,length*7/20,width*4/6,length*7/20} , {width/2,length/2,width/2,length/2} }};
+double newplayerposition[2][6][4]={{{width/2,length*8/10,width/2,length*8/10,}, {width/6,length*8/10,width/6,length*8/10}, {width*5/6,length*8/10,width*5/6,length*8/10},{width*2/6,length*7/10,width*2/6,length*7/10},{width*4/6,length*7/10,width*4/6,length*7/10} , {width/2,length*6/10,width/2,length*6/10} },{ {width/2,length*2/10,width/2,length*2/10},{width/6,length*2/10,width/6,length*2/10},{width*5/6,length*2/10,width*5/6,length*2/10},{width*2/6,length*7/20,width*2/6,length*7/20},{width*4/6,length*7/20,width*4/6,length*7/20} , {width/2,length/2,width/2,length/2} }};
 double ballpointer[4]={width/2,length/2};
-int activeplayer=5,ballstate=1,ballholder=activeplayer,activeplayeropp;
+int activeplayer=5,ballstate=1,ballholder=activeplayer,activeplayeropp=5,helpingplayer=4,helpingplayeropp=4;
 int page_number=1,coverpagetime=100;
-double playerradius=8,ballradius=5,collideposition=3;
+double dxy=30;
+double positionField[2][6][4]={{{4*width/7, 3*width/7, length-gallary, length/2}, {10*width/20, gallary, length-gallary, 10*length/20}, {width-gallary, 10*width/20,  length-gallary, 10*length/20}, {10*width/20, gallary, 10*length/20, gallary}, {width-gallary, 10*width/20, 10*length/20, gallary}, {10*width/20, 10*width/20, length/2, gallary}}, {{4*width/7, 3*width/7, length/2, gallary}, {10*width/20, gallary, 10*length/20, gallary}, {width-gallary, 10*width/20, 10*length/20, gallary}, {10*width/20, gallary, length-gallary, 10*length/20}, {width-gallary, 10*width/20, length-gallary, 10*length/20}, {10*width/20, 10*width/20, length-gallary, length/2}}};
+double range[2][6][2]={{{7*width/20,7*width/20},{-7*width/20,7*width/20},{7*width/20,7*width/20},{-7*width/20,-7*width/20},{7*width/20,-7*width/20},{7*width/20,-7*width/20}},{{7*width/20,-7*width/20},{-7*width/20,-7*width/20},{7*width/20,-7*width/20},{-7*width/20,7*width/20},{7*width/20,7*width/20},{7*width/20,7*width/20}}};
+int dX=30, dY=50;
+
 
 
 void resetvariables()
 {
     memcpy(ballpointer,newball,4*sizeof(double));
     memcpy(gkpointer,newgk,4*sizeof(double));
-    memcpy(playerpointer,newplayer,24*sizeof(double));
-    memcpy(opponentpointer,newopponent,24*sizeof(double));
+    memcpy(playerposition, newplayerposition,2*6*4*sizeof(double)) ;
     activeplayer=5;ballstate=1;ballholder=5;
     gametime=0;
 }
@@ -38,53 +42,124 @@ bool checkcollision(double x1,double y1,double x2, double y2, double r)
         return false;
 }
 
-void defenceopponent()
+int playerOnTheWay(double x1,double y1,double x3,double y3,double x2,double y2,double r)
 {
-
+    if((abs(((y2-y1)*x3-(x2-x1)*y3+y1*(x2-x1)-x1*(y2-y1)))/ sqrt((y2-y1)*(y2-y1)+(x2-x1)*(x2-x1)))>3*r)
+        return 0;
+    else
+    {
+        if(((x3>=x1 && x2>=x3) || (x3<=x1 && x2<=x3)) && ((y3>=y1 && y2>=y3) || (y3<=y1 && y2<=y3)))
+            return 1;
+        else
+            return -1;
+    }
 }
 
-void attack()
+void choosePosition(int t,int m, double maxX, double minX, double maxY, double minY, double rangeX, double rangeY)//int accuracy, int urgency
 {
-    if(ballpointer[1]<length*16/20)
+    //X axis movement
+    if(ballpointer[0]>=maxX)
     {
-        if(activeplayer!=3)
+        if(ballpointer[0]-rangeX>=maxX)
+            playerposition[t][m][2]=maxX - rand() % dX;
+        else
+            playerposition[t][m][2]=maxX - rand() % (int)(rangeX-ballpointer[1]+maxX);
+    }
+    else if(ballpointer[0]<=minX)
+    {
+        if(ballpointer[0]+rangeX <= minX)
+            playerposition[t][m][2]=minX + rand() % dX;
+        else
+            playerposition[t][m][2]=minX+ rand() % (int)(ballpointer[0]+rangeX-minX);
+    }
+    else
+    {
+        if(ballpointer[0]>=minX+2*(maxX-minX)/3)
+            playerposition[t][m][2]=ballpointer[0] - rand() % (int) rangeX;
+        else if(ballpointer[0]<= minX+(maxX-minX)/3)
+            playerposition[t][m][2]=ballpointer[0] + rand() % (int) rangeX;
+        else
+            playerposition[t][m][2]=minX + rand() % (int) (maxX-minX);
+    }
+
+    //Y axis movement
+    if(ballpointer[1]>=maxY)
+    {
+        if(ballpointer[1]-rangeY >= maxY)
+            playerposition[t][m][3]=maxY - rand() % dY;
+        else
+            playerposition[t][m][3]=maxY- rand() % (int)(rangeY-ballpointer[1]+maxY);
+    }
+    else if(ballpointer[1]<=minY)
+    {
+        if(ballpointer[1]+rangeY <= minY)
+            playerposition[t][m][3]=minY + rand() % dY;
+        else
+            playerposition[t][m][3]=minY+ rand() % (int)(ballpointer[1]+rangeY-minY);
+    }
+    else
+    {
+        if(ballstate==1)
         {
-            if(playerpointer[3][1]<ballpointer[1]+length*3/20 && playerpointer[3][1]<length*18/20)
-                playerpointer[3][1]+=speed*3/5;
-            else if(playerpointer[3][1]>ballpointer[1]+length*3/20-5 && playerpointer[3][1]>length*6/20)
-                playerpointer[3][1]-=speed*3/5;
+            if(ballpointer[1]+rangeY<=maxY)
+                playerposition[t][m][3]=ballpointer[1]+rand() % (int)(rangeY);
+            else
+                playerposition[t][m][3]=ballpointer[1]+rand() % (int)(maxY-ballpointer[1]);
         }
-        if(activeplayer!=4)
+        else if(ballstate==-1)
         {
-            if(playerpointer[4][1]<ballpointer[1]+length*3/20 && playerpointer[4][1]<length*18/20)
-                playerpointer[4][1]+=speed*3/5;
-            else if(playerpointer[4][1]>ballpointer[1]+length*3/20-5 && playerpointer[4][1]>length*6/20)
-                playerpointer[4][1]-=speed*3/5;
+            if(ballpointer[1]-rangeY>=minY)
+                playerposition[t][m][3]=ballpointer[1]- rand() % (int)(rangeY);
+            else
+                playerposition[t][m][3]=ballpointer[1]-rand() % (int)(ballpointer[1]-minY);
         }
     }
-    else if(ballpointer[1]<length*16/20)
+    
+}
+
+bool timetoChoosePosition(int team, int m)
+{
+    if(playerposition[team][m][0]<playerposition[team][m][2]+dxy && playerposition[team][m][0]>playerposition[team][m][2]-dxy && playerposition[team][m][1]<playerposition[team][m][3]+dxy && playerposition[team][m][1]>playerposition[team][m][3]-dxy)
+        return 1;
+    else
+        return 0;
+}
+
+void chooseAndTakePosition()
+{
+    for(int j = 0; j < 6; j++)
     {
-        
-    }
-    if(activeplayer!=3)
-    {
-         if(ballpointer[0]>=width*2/5)
+        if(activeplayer != j)
         {
-            if((ballpointer[0]-width/2)/2 > playerpointer[3][0]-width/4 )
-                playerpointer[3][0]+=speed/4;
-            else if((ballpointer[0]-width/2)/2 <= playerpointer[3][0]-width/4 )
-                playerpointer[3][0]-=speed/4;
+            if (timetoChoosePosition(1,j))
+            {
+                if (timer % (3000 + rand() % 3000) <= 10)
+                    choosePosition(1,j,positionField[1][j][0],positionField[1][j][1],positionField[1][j][2],positionField[1][j][3],5*width/20,5*length/20); // team 1
+            }
+            else
+            {
+                if((playerposition[1][j][2]-playerposition[1][j][0])*(playerposition[1][j][2]-playerposition[1][j][0])+(playerposition[1][j][3]-playerposition[1][j][1])*(playerposition[1][j][3]-playerposition[1][j][1])>2)
+                {
+                    playerposition[1][j][0]+= (3*speed/5) *(playerposition[1][j][2]-playerposition[1][j][0])/sqrt((playerposition[1][j][2]-playerposition[1][j][0])*(playerposition[1][j][2]-playerposition[1][j][0])+(playerposition[1][j][3]-playerposition[1][j][1])*(playerposition[1][j][3]-playerposition[1][j][1]));
+                    playerposition[1][j][1]+= (3*speed/5) *(playerposition[1][j][3]-playerposition[1][j][1])/sqrt((playerposition[1][j][2]-playerposition[1][j][0])*(playerposition[1][j][2]-playerposition[1][j][0])+(playerposition[1][j][3]-playerposition[1][j][1])*(playerposition[1][j][3]-playerposition[1][j][1]));
+                }
+            }
         }
-    }
-    if(activeplayer!=4)
-    {
-        
-        if(ballpointer[0]<=width*3/5)
+        if(activeplayeropp != j)
         {
-            if(ballpointer[0]/2 > playerpointer[4][0]-width/2 )
-                playerpointer[4][0]+=speed/4;
-            else if(ballpointer[0]/2 < playerpointer[4][0]-width/2 )
-                playerpointer[4][0]-=speed/4;
+            if (timetoChoosePosition(0,j))
+            {
+                if (timer % (3000 + rand() % 3000) <= 100)
+                    choosePosition(0,j,positionField[0][j][0],positionField[0][j][1],positionField[0][j][2],positionField[0][j][3],4*width/20,5*length/20); // team 0
+            }
+            else
+            {
+                if((playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1])>2)
+                {
+                    playerposition[0][j][0]+= speed*3/5*(playerposition[0][j][2]-playerposition[0][j][0])/sqrt((playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1]));
+                    playerposition[0][j][1]+= speed*3/5*(playerposition[0][j][3]-playerposition[0][j][1])/sqrt((playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1])); 
+                }   
+            }
         }
     }
 }
@@ -108,87 +183,85 @@ void handlecollission()
     {
         if(ballstate==0)
         {
-            if(checkcollision(playerpointer[i][0],playerpointer[i][1],ballpointer[0],ballpointer[1],ballradius+playerradius))
+            if(checkcollision(playerposition[1][i][0],playerposition[1][i][1],ballpointer[0],ballpointer[1],ballradius+playerradius))
             {
                 ballstate=1;
                 ballholder=i;
-                /*ballpointer[0]=playerpointer[i][0];
-                ballpointer[1]=playerpointer[i][1];*/
             }
-            else if(checkcollision(opponentpointer[i][0],opponentpointer[i][1],ballpointer[0],ballpointer[1],ballradius+playerradius))
+            else if(checkcollision(playerposition[0][i][0],playerposition[0][i][1],ballpointer[0],ballpointer[1],ballradius+playerradius))
             {
                 ballstate=-1;
                 ballholder=i;
             }
         }
-        if(checkcollision(playerpointer[i][0],playerpointer[i][1],gkpointer[0][0],gkpointer[0][1],2*playerradius))
+        if(checkcollision(playerposition[1][i][0],playerposition[1][i][1],gkpointer[0][0],gkpointer[0][1],2*playerradius))
         {
             if(i==ballholder && ballstate==1)
             {
                 ballstate=1;
                 ballholder=-1;
             }
-            if(playerpointer[i][0]>gkpointer[0][0])
-                playerpointer[i][0]+=3;
-            else if(playerpointer[i][0]<gkpointer[0][0])
-                playerpointer[i][0]-=3;
-            if(playerpointer[i][1]>gkpointer[0][1])
-                playerpointer[i][1]+=3;
-            else if(playerpointer[i][1]<gkpointer[0][1])
-                playerpointer[i][1]-=3;
+            if(playerposition[1][i][0]>gkpointer[0][0])
+                playerposition[1][i][0]+=3;
+            else if(playerposition[1][i][0]<gkpointer[0][0])
+                playerposition[1][i][0]-=3;
+            if(playerposition[1][i][1]>gkpointer[0][1])
+                playerposition[1][i][1]+=3;
+            else if(playerposition[1][i][1]<gkpointer[0][1])
+                playerposition[1][i][1]-=3;
         }
-        else if(checkcollision(playerpointer[i][0],playerpointer[i][1],gkpointer[1][0],gkpointer[1][1],2*playerradius))
+        else if(checkcollision(playerposition[1][i][0],playerposition[1][i][1],gkpointer[1][0],gkpointer[1][1],2*playerradius))
         {
             if(i==ballholder && ballstate==1)
             {
                 ballstate=-1;
                 ballholder=-1;
             }
-            if(playerpointer[i][0]>gkpointer[1][0])
-                playerpointer[i][0]+=3;
-            else if(playerpointer[i][0]<gkpointer[1][0])
-                playerpointer[i][0]-=3;
-            if(playerpointer[i][1]>gkpointer[1][1])
-                playerpointer[i][1]+=3;
-            else if(playerpointer[i][1]<gkpointer[1][1])
-                playerpointer[i][1]-=3;
+            if(playerposition[1][i][0]>gkpointer[1][0])
+                playerposition[1][i][0]+=3;
+            else if(playerposition[1][i][0]<gkpointer[1][0])
+                playerposition[1][i][0]-=3;
+            if(playerposition[1][i][1]>gkpointer[1][1])
+                playerposition[1][i][1]+=3;
+            else if(playerposition[1][i][1]<gkpointer[1][1])
+                playerposition[1][i][1]-=3;
         }
-        if(checkcollision(opponentpointer[i][0],opponentpointer[i][1],gkpointer[0][0],gkpointer[0][1],2*playerradius))
+        if(checkcollision(playerposition[0][i][0],playerposition[0][i][1],gkpointer[0][0],gkpointer[0][1],2*playerradius))
         {
             if(i==ballholder && ballstate==-1)
             {
                 ballstate=1;
                 ballholder=-1;
             }
-            if(opponentpointer[i][0]>gkpointer[0][0])
-                opponentpointer[i][0]+=3;
-            else if(opponentpointer[i][0]<gkpointer[0][0])
-                opponentpointer[i][0]-=3;
-            if(opponentpointer[i][1]>gkpointer[0][1])
-                opponentpointer[i][1]+=3;
-            else if(opponentpointer[i][1]<gkpointer[0][1])
-                opponentpointer[i][1]-=3;
+            if(playerposition[0][i][0]>gkpointer[0][0])
+                playerposition[0][i][0]+=3;
+            else if(playerposition[0][i][0]<gkpointer[0][0])
+                playerposition[0][i][0]-=3;
+            if(playerposition[0][i][1]>gkpointer[0][1])
+                playerposition[0][i][1]+=3;
+            else if(playerposition[0][i][1]<gkpointer[0][1])
+                playerposition[0][i][1]-=3;
         }
-        else if(checkcollision(opponentpointer[i][0],opponentpointer[i][1],gkpointer[1][0],gkpointer[1][1],2*playerradius))
+        else if(checkcollision(playerposition[0][i][0],playerposition[0][i][1],gkpointer[1][0],gkpointer[1][1],2*playerradius))
         {
             if(i==ballholder && ballstate==-1)
             {
                 ballstate=-1;
                 ballholder=-1;
             }
-            if(opponentpointer[i][0]>gkpointer[1][0])
-                opponentpointer[i][0]+=3;
-            else if(opponentpointer[i][0]<gkpointer[1][0])
-                opponentpointer[i][0]-=3;
-            if(opponentpointer[i][1]>gkpointer[1][1])
-                opponentpointer[i][1]+=3;
-            else if(opponentpointer[i][1]<gkpointer[1][1])
-                opponentpointer[i][1]-=3;
+            if(playerposition[0][i][0]>gkpointer[1][0])
+                playerposition[0][i][0]+=3;
+            else if(playerposition[0][i][0]<gkpointer[1][0])
+                playerposition[0][i][0]-=3;
+            if(playerposition[0][i][1]>gkpointer[1][1])
+                playerposition[0][i][1]+=3;
+            else if(playerposition[0][i][1]<gkpointer[1][1])
+                playerposition[0][i][1]-=3;
         }
         
         for(ii=0;ii<6;ii++)
         {
-            if(checkcollision(playerpointer[i][0],playerpointer[i][1],playerpointer[ii][0],playerpointer[ii][1],2*playerradius))
+            if(checkcollision(playerposition[1][i][0],playerposition[1][i][1],playerposition[1][ii][0],playerposition[1][ii][1],2*playerradius))
             {
                 if(ballstate==1)
                 {
@@ -197,28 +270,28 @@ void handlecollission()
                     else if(ballholder==ii)
                         ballholder=i;
                 }
-                if(playerpointer[i][0]>playerpointer[ii][0])
+                if(playerposition[1][i][0]>playerposition[1][ii][0])
                 {
-                    playerpointer[i][0]+=collideposition;
-                    playerpointer[ii][0]-=collideposition;
+                    playerposition[1][i][0]+=rand()% (int)collidepos;
+                    playerposition[1][ii][0]-=rand()% (int)collidepos;
                 }
-                else if(playerpointer[i][0]<playerpointer[ii][0])
+                else if(playerposition[1][i][0]<playerposition[1][ii][0])
                 {
-                    playerpointer[i][0]-=collideposition;
-                    playerpointer[ii][0]+=collideposition;
+                    playerposition[1][i][0]-=rand()% (int)collidepos;
+                    playerposition[1][ii][0]+=rand()% (int)collidepos;
                 }
-                if(playerpointer[i][1]>playerpointer[ii][1])
+                if(playerposition[1][i][1]>playerposition[1][ii][1])
                 {
-                    playerpointer[i][1]+=collideposition;
-                    playerpointer[ii][1]-=collideposition;
+                    playerposition[1][i][1]+=rand()% (int)collidepos;
+                    playerposition[1][ii][1]-=rand()% (int)collidepos;
                 }
-                else if(playerpointer[i][1]<playerpointer[ii][1])
+                else if(playerposition[1][i][1]<playerposition[1][ii][1])
                 {
-                    playerpointer[i][1]-=collideposition;
-                    playerpointer[ii][1]+=collideposition;
+                    playerposition[1][i][1]-=rand()% (int)collidepos;
+                    playerposition[1][ii][1]+=rand()% (int)collidepos;
                 }
             }
-            if(checkcollision(opponentpointer[i][0],opponentpointer[i][1],opponentpointer[ii][0],opponentpointer[ii][1],2*playerradius))
+            if(checkcollision(playerposition[0][i][0],playerposition[0][i][1],playerposition[0][ii][0],playerposition[0][ii][1],2*playerradius))
             {
                 if(ballstate==-1)
                 {
@@ -227,28 +300,28 @@ void handlecollission()
                     else if(ballholder==ii)
                         ballholder=i;
                 }
-                if(opponentpointer[i][0]>opponentpointer[ii][0])
+                if(playerposition[0][i][0]>playerposition[0][ii][0])
                 {
-                    opponentpointer[i][0]+=collideposition;
-                    opponentpointer[ii][0]-=collideposition;
+                    playerposition[0][i][0]+=rand()% (int)collidepos;
+                    playerposition[0][ii][0]-=rand()% (int)collidepos;
                 }
-                else if(opponentpointer[i][0]<opponentpointer[ii][0])
+                else if(playerposition[0][i][0]<playerposition[0][ii][0])
                 {
-                    opponentpointer[i][0]-=collideposition;
-                    opponentpointer[ii][0]+=collideposition;
+                    playerposition[0][i][0]-=rand()% (int)collidepos;
+                    playerposition[0][ii][0]+=rand()% (int)collidepos;
                 }
-                if(opponentpointer[i][1]>opponentpointer[ii][1])
+                if(playerposition[0][i][1]>playerposition[0][ii][1])
                 {
-                    opponentpointer[i][1]+=collideposition;
-                    opponentpointer[ii][1]-=collideposition;
+                    playerposition[0][i][1]+=rand()% (int)collidepos;
+                    playerposition[0][ii][1]-=rand()% (int)collidepos;
                 }
-                else if(opponentpointer[i][1]<opponentpointer[ii][1])
+                else if(playerposition[0][i][1]<playerposition[0][ii][1])
                 {
-                    opponentpointer[i][1]-=collideposition;
-                    opponentpointer[ii][1]+=collideposition;
+                    playerposition[0][i][1]-=rand()% (int)collidepos;
+                    playerposition[0][ii][1]+=rand()% (int)collidepos;
                 }
             }
-            if(checkcollision(playerpointer[i][0],playerpointer[i][1],opponentpointer[ii][0],opponentpointer[ii][1],2*playerradius))
+            if(checkcollision(playerposition[1][i][0],playerposition[1][i][1],playerposition[0][ii][0],playerposition[0][ii][1],2*playerradius))
             {
                 if(ballholder!=-1)
                 {
@@ -263,25 +336,25 @@ void handlecollission()
                         ballholder=i;
                     }
                 }
-                if(playerpointer[i][0]>opponentpointer[ii][0])
+                if(playerposition[1][i][0]>playerposition[0][ii][0])
                 {
-                    playerpointer[i][0]+=collideposition;
-                    opponentpointer[ii][0]-=collideposition;
+                    playerposition[1][i][0]+=rand()% (int)collidepos;
+                    playerposition[0][ii][0]-=rand()% (int)collidepos;
                 }
-                else if(playerpointer[i][0]<opponentpointer[ii][0])
+                else if(playerposition[1][i][0]<playerposition[0][ii][0])
                 {
-                    playerpointer[i][0]-=collideposition;
-                    opponentpointer[ii][0]+=collideposition;
+                    playerposition[1][i][0]-=rand()% (int)collidepos;
+                    playerposition[0][ii][0]+=rand()% (int)collidepos;
                 }
-                if(playerpointer[i][1]>opponentpointer[ii][1])
+                if(playerposition[1][i][1]>playerposition[0][ii][1])
                 {
-                    playerpointer[i][1]+=collideposition;
-                    opponentpointer[ii][1]-=collideposition;
+                    playerposition[1][i][1]+=rand()% (int)collidepos;
+                    playerposition[0][ii][1]-=rand()% (int)collidepos;
                 }
-                else if(playerpointer[i][1]<opponentpointer[ii][1])
+                else if(playerposition[1][i][1]<playerposition[0][ii][1])
                 {
-                    playerpointer[i][1]-=collideposition;
-                    opponentpointer[ii][1]+=collideposition;
+                    playerposition[1][i][1]-=rand()% (int)collidepos;
+                    playerposition[0][ii][1]+=rand()% (int)collidepos;
                 }
             }
         }
@@ -298,14 +371,13 @@ void chooseactiveplayer()
     {
         for(i=0;i<6;i++)
         {
-            if((ballpointer[0]-playerpointer[activeplayer][0])*(ballpointer[0]-playerpointer[activeplayer][0])+(ballpointer[1]-playerpointer[activeplayer][1])*(ballpointer[1]-playerpointer[activeplayer][1])>(ballpointer[0]-playerpointer[i][0])*(ballpointer[0]-playerpointer[i][0])+(ballpointer[1]-playerpointer[i][1])*(ballpointer[1]-playerpointer[i][1]))
-                activeplayer=i;
+            if((ballpointer[0]-playerposition[1][activeplayer][0])*(ballpointer[0]-playerposition[1][activeplayer][0])+(ballpointer[1]-playerposition[1][activeplayer][1])*(ballpointer[1]-playerposition[1][activeplayer][1])>(ballpointer[0]-playerposition[1][i][0])*(ballpointer[0]-playerposition[1][i][0])+(ballpointer[1]-playerposition[1][i][1])*(ballpointer[1]-playerposition[1][i][1]))
+                helpingplayer=i;
         }
+        if(isKeyPressed('o'))
+            activeplayer=helpingplayer;
     }
-    /*else if(ballstate==-1)
-    {
-         
-    }*/
+    
 }
 
 void chooseopponentactiveplayer()
@@ -318,26 +390,28 @@ void chooseopponentactiveplayer()
     {
         for(i=0;i<6;i++)
         {
-            if((ballpointer[0]-opponentpointer[activeplayeropp][0])*(ballpointer[0]-opponentpointer[activeplayeropp][0])+(ballpointer[1]-opponentpointer[activeplayeropp][1])*(ballpointer[1]-opponentpointer[activeplayeropp][1])>(ballpointer[0]-opponentpointer[i][0])*(ballpointer[0]-opponentpointer[i][0])+(ballpointer[1]-opponentpointer[i][1])*(ballpointer[1]-opponentpointer[i][1]))
-                activeplayeropp=i;
+            if((ballpointer[0]-playerposition[0][activeplayeropp][0])*(ballpointer[0]-playerposition[0][activeplayeropp][0])+(ballpointer[1]-playerposition[0][activeplayeropp][1])*(ballpointer[1]-playerposition[0][activeplayeropp][1])>(ballpointer[0]-playerposition[0][i][0])*(ballpointer[0]-playerposition[0][i][0])+(ballpointer[1]-playerposition[0][i][1])*(ballpointer[1]-playerposition[0][i][1]))
+                helpingplayeropp=i;
         }
+        if(isKeyPressed('c'))
+            activeplayeropp=helpingplayeropp;
     }
-    /*else if(ballstate==-1)
-    {
-         
-    }*/
 }
 
 void loadresources()
 {
-    iInitSprite(&fball,000000);
+    iInitSprite(&fields,0x000000);
+    iLoadFramesFromSheet(field,"field.png",1,1);
+    iChangeSpriteFrames(&fields,field,1);
+    iSetSpritePosition(&fields,0,0);
+    iInitSprite(&fball,0x000000);
     iLoadFramesFromSheet(ball, "ball.png" ,1,1);
     iChangeSpriteFrames(&fball,ball,1);
 
     for(int n=0;n<6;n++)
     {
-        iInitSprite(&players[n] , 000000);
-        iInitSprite(&opponents[n] , 000000);
+        iInitSprite(&players[n] , 0x000000);
+        iInitSprite(&opponents[n] , 0x000000);
         iLoadFramesFromSheet(player, "player.png" ,1,1);
         iChangeSpriteFrames(&players[n],player,1);
         if(n==0)
@@ -352,86 +426,17 @@ void loadresources()
             iChangeSpriteFrames(&gk[n],opponent,1);
             iSetSpritePosition(&gk[n],gkpointer[n][0],gkpointer[n][1]);
         }
-        iSetSpritePosition(&players[n],playerpointer[n][0],playerpointer[n][1]);
-        iSetSpritePosition(&opponents[n],opponentpointer[n][0],opponentpointer[n][1]);
+        iSetSpritePosition(&players[n],playerposition[1][n][0],playerposition[1][n][1]);
+        iSetSpritePosition(&opponents[n],playerposition[0][n][0],playerposition[0][n][1]);
     }
 }
-
-/*void ballcarrier()
-{
-    for(i=0;i<6;i++)
-    {
-        if(ballstate==0)
-        {
-            
-            if(iCheckCollision(&fball,&players[i]))
-            {
-                ballstate=1;
-                ballholder=i;
-                activeplayer=i;
-                break;
-            }
-            else if(iCheckCollision(&fball,&opponents[i]))
-            {
-                ballstate=-1;
-                ballholder=i;
-                break;
-            }
-        }
-        else if(ballstate==1)
-        {
-            if(i==ballholder)
-                continue;
-            if(iCheckCollision(&players[ballholder],&players[i]))
-            {
-                ballholder=i;
-                activeplayer=i;
-                break;
-            }
-            if(iCheckCollision(&players[ballholder],&opponents[i]))
-            {
-                ballstate=-1;
-                ballholder=i;
-                break;
-            }
-        }
-        else if(ballstate==-1)
-        {
-            if(iCheckCollision(&opponents[ballholder],&opponents[i]) || iCheckCollision(&opponents[i],&opponents[ballholder]))
-            {
-                ballholder=i;
-                break;
-            }
-            if(iCheckCollision(&players[i],&opponents[ballholder]) || iCheckCollision(&opponents[ballholder],&players[i]))
-            {
-                ballstate=1;
-                ballholder=i;
-                activeplayer=i;
-                break;
-            }
-        }
-    }
-    if(ballholder!=-1)
-    {
-        if(iCheckCollision(&fball, &gk[0]))
-        {
-            ballstate=1;
-            ballholder=-1;
-        }
-        else if(iCheckCollision(&fball,&gk[1]))
-        {
-            ballstate=-1;
-            ballholder=-1;
-        }
-    }
-}*/
 
 void spritepositionupdate()
 {
     for(i=0;i<6;i++)
     {
-        iSetSpritePosition(&players[i],playerpointer[i][0]-playerradius,playerpointer[i][1]-playerradius);
-        iSetSpritePosition(&opponents[i],opponentpointer[i][0]-playerradius,opponentpointer[i][1]-playerradius);
+        iSetSpritePosition(&players[i],playerposition[1][i][0]-playerradius,playerposition[1][i][1]-playerradius);
+        iSetSpritePosition(&opponents[i],playerposition[0][i][0]-playerradius,playerposition[0][i][1]-playerradius);
         if(i==0 || i==1)
             iSetSpritePosition(&gk[i],gkpointer[i][0]-playerradius,gkpointer[i][1]-playerradius);
     }
@@ -460,14 +465,14 @@ void gkmoving(){
                 gkpointer[1][0]=gkpointer[1][0]+gkspeed;
         }
     }
-    if(gkpointer[0][0]<width/6)
-        gkpointer[0][0]=width/6;
-    else if(gkpointer[0][0]>width*5/6)
-        gkpointer[0][0]=width*5/6;
-    if(gkpointer[1][0]<width/6)
-        gkpointer[1][0]=width/6;
-    else if(gkpointer[1][0]>width*5/6)
-        gkpointer[1][0]=width*5/6;
+    if(gkpointer[0][0]<width/2-80)
+        gkpointer[0][0]=width/2-80;
+    else if(gkpointer[0][0]>width/2+80)
+        gkpointer[0][0]=width/2+80;
+    if(gkpointer[1][0]<width/2-80)
+        gkpointer[1][0]=width/2-80;
+    else if(gkpointer[1][0]>width/2+80)
+        gkpointer[1][0]=width/2+80;
     
 }
 
@@ -715,51 +720,51 @@ void opponentplayermoveing()
     {
         if(isKeyPressed('w')){
             if(isKeyPressed('a')){
-                opponentpointer[activeplayeropp][0]-=speed/2.8;
-                opponentpointer[activeplayeropp][1]+=speed/2.8;
+                playerposition[0][activeplayeropp][0]-=speed/2.8;
+                playerposition[0][activeplayeropp][1]+=speed/2.8;
             }
             else if(isKeyPressed('d')){
-                opponentpointer[activeplayeropp][0]+=speed/2.8;
-                opponentpointer[activeplayeropp][1]+=speed/2.8;
+                playerposition[0][activeplayeropp][0]+=speed/2.8;
+                playerposition[0][activeplayeropp][1]+=speed/2.8;
             }
             else
-                opponentpointer[activeplayeropp][1]+=speed;
+                playerposition[0][activeplayeropp][1]+=speed;
         }
         if(isKeyPressed( 's' )){
             if(isKeyPressed('a')){
-                opponentpointer[activeplayeropp][0]-=speed/2.8;
-                opponentpointer[activeplayeropp][1]-=speed/2.8;
+                playerposition[0][activeplayeropp][0]-=speed/2.8;
+                playerposition[0][activeplayeropp][1]-=speed/2.8;
             }
             else if(isKeyPressed('d')){
-                opponentpointer[activeplayeropp][0]+=speed/2.8;
-                opponentpointer[activeplayeropp][1]-=speed/2.8;
+                playerposition[0][activeplayeropp][0]+=speed/2.8;
+                playerposition[0][activeplayeropp][1]-=speed/2.8;
             }
             else
-                opponentpointer[activeplayeropp][1]-=speed;
+                playerposition[0][activeplayeropp][1]-=speed;
         }
         if(isKeyPressed( 'd')){
             if(isKeyPressed('w')){
-                opponentpointer[activeplayeropp][0]+=speed/2.8;
-                opponentpointer[activeplayeropp][1]+=speed/2.8;
+                playerposition[0][activeplayeropp][0]+=speed/2.8;
+                playerposition[0][activeplayeropp][1]+=speed/2.8;
             }
             else if(isKeyPressed('s')){
-                opponentpointer[activeplayeropp][0]+=speed/2.8;
-                opponentpointer[activeplayeropp][1]-=speed/2.8;
+                playerposition[0][activeplayeropp][0]+=speed/2.8;
+                playerposition[0][activeplayeropp][1]-=speed/2.8;
             }
             else
-                opponentpointer[activeplayeropp][0]+=speed;
+                playerposition[0][activeplayeropp][0]+=speed;
         }
         if(isKeyPressed( 'a')){
             if(isKeyPressed('w')){
-                opponentpointer[activeplayeropp][0]-=speed/2.8;
-                opponentpointer[activeplayeropp][1]+=speed/2.8;
+                playerposition[0][activeplayeropp][0]-=speed/2.8;
+                playerposition[0][activeplayeropp][1]+=speed/2.8;
             }
             else if(isKeyPressed('s')){
-                opponentpointer[activeplayeropp][0]-=speed/2.8;
-                opponentpointer[activeplayeropp][1]-=speed/2.8;
+                playerposition[0][activeplayeropp][0]-=speed/2.8;
+                playerposition[0][activeplayeropp][1]-=speed/2.8;
             }
             else
-                opponentpointer[activeplayeropp][0]-=speed;
+                playerposition[0][activeplayeropp][0]-=speed;
         }
     }
 }
@@ -778,51 +783,51 @@ void activeplayermoveing()
     {
         if(isSpecialKeyPressed(GLUT_KEY_UP)){
             if(isSpecialKeyPressed(GLUT_KEY_LEFT)){
-                playerpointer[activeplayer][0]-=speed/2.8;
-                playerpointer[activeplayer][1]+=speed/2.8;
+                playerposition[1][activeplayer][0]-=speed/2.8;
+                playerposition[1][activeplayer][1]+=speed/2.8;
             }
             else if(isSpecialKeyPressed(GLUT_KEY_RIGHT)){
-                playerpointer[activeplayer][0]+=speed/2.8;
-                playerpointer[activeplayer][1]+=speed/2.8;
+                playerposition[1][activeplayer][0]+=speed/2.8;
+                playerposition[1][activeplayer][1]+=speed/2.8;
             }
             else
-                playerpointer[activeplayer][1]+=speed;
+                playerposition[1][activeplayer][1]+=speed;
         }
         if(isSpecialKeyPressed( GLUT_KEY_DOWN )){
             if(isSpecialKeyPressed(GLUT_KEY_LEFT)){
-                playerpointer[activeplayer][0]-=speed/2.8;
-                playerpointer[activeplayer][1]-=speed/2.8;
+                playerposition[1][activeplayer][0]-=speed/2.8;
+                playerposition[1][activeplayer][1]-=speed/2.8;
             }
             else if(isSpecialKeyPressed(GLUT_KEY_RIGHT)){
-                playerpointer[activeplayer][0]+=speed/2.8;
-                playerpointer[activeplayer][1]-=speed/2.8;
+                playerposition[1][activeplayer][0]+=speed/2.8;
+                playerposition[1][activeplayer][1]-=speed/2.8;
             }
             else
-                playerpointer[activeplayer][1]-=speed;
+                playerposition[1][activeplayer][1]-=speed;
         }
         if(isSpecialKeyPressed( GLUT_KEY_RIGHT)){
             if(isSpecialKeyPressed(GLUT_KEY_UP)){
-                playerpointer[activeplayer][0]+=speed/2.8;
-                playerpointer[activeplayer][1]+=speed/2.8;
+                playerposition[1][activeplayer][0]+=speed/2.8;
+                playerposition[1][activeplayer][1]+=speed/2.8;
             }
             else if(isSpecialKeyPressed(GLUT_KEY_DOWN)){
-                playerpointer[activeplayer][0]+=speed/2.8;
-                playerpointer[activeplayer][1]-=speed/2.8;
+                playerposition[1][activeplayer][0]+=speed/2.8;
+                playerposition[1][activeplayer][1]-=speed/2.8;
             }
             else
-                playerpointer[activeplayer][0]+=speed;
+                playerposition[1][activeplayer][0]+=speed;
         }
         if(isSpecialKeyPressed( GLUT_KEY_LEFT)){
             if(isSpecialKeyPressed(GLUT_KEY_UP)){
-                playerpointer[activeplayer][0]-=speed/2.8;
-                playerpointer[activeplayer][1]+=speed/2.8;
+                playerposition[1][activeplayer][0]-=speed/2.8;
+                playerposition[1][activeplayer][1]+=speed/2.8;
             }
             else if(isSpecialKeyPressed(GLUT_KEY_DOWN)){
-                playerpointer[activeplayer][0]-=speed/2.8;
-                playerpointer[activeplayer][1]-=speed/2.8;
+                playerposition[1][activeplayer][0]-=speed/2.8;
+                playerposition[1][activeplayer][1]-=speed/2.8;
             }
             else
-                playerpointer[activeplayer][0]-=speed;
+                playerposition[1][activeplayer][0]-=speed;
         }
     }
 }
@@ -838,8 +843,8 @@ void ballposition()
         }
         else
         {
-            ballpointer[0]=playerpointer[ballholder][0];
-            ballpointer[1]=playerpointer[ballholder][1];
+            ballpointer[0]=playerposition[1][ballholder][0];
+            ballpointer[1]=playerposition[1][ballholder][1];
         }
     }
     else if(ballstate==-1)
@@ -851,8 +856,8 @@ void ballposition()
         }
         else
         {
-            ballpointer[0]=opponentpointer[ballholder][0];
-            ballpointer[1]=opponentpointer[ballholder][1];
+            ballpointer[0]=playerposition[0][ballholder][0];
+            ballpointer[1]=playerposition[0][ballholder][1];
         }
     }
     else if(ballstate==0)
@@ -872,6 +877,8 @@ void ballposition()
 
 void spriteshow()
 {
+    //iShowImage(0,0,"field.png");
+    //iShowSprite(&fields);
     for(i=0;i<6;i++)
     {
         iShowSprite(&players[i]);
@@ -888,17 +895,49 @@ void backbutton()
     iShowImage(5,50,"back.png");
 }
 
+void drawfield()
+{
+    iSetLineWidth(3);
+    iSetColor(35,181,78);
+    iFilledRectangle(0,0,width,gallary);
+    iFilledRectangle(0,gallary+80,width,80);
+    iFilledRectangle(0,gallary+3*80,width,80);
+    iFilledRectangle(0,gallary+5*80,width,80);
+    iFilledRectangle(0,gallary+7*80,width,80);
+    iSetColor(45,232,100);
+    iFilledRectangle(0,gallary+0*80,width,80);
+    iFilledRectangle(0,gallary+2*80,width,80);
+    iFilledRectangle(0,gallary+4*80,width,80);
+    iFilledRectangle(0,gallary+6*80,width,80);
+    iFilledRectangle(0,gallary+8*80,width,gallary);
+    iSetColor(255,255,255);
+    iRectangle(gallary,gallary,width-2*gallary,length-2*gallary);
+    iLine(gallary,length/2,width-gallary,length/2);
+    iFilledCircle(width/2,length/2,4);
+    iCircle(width/2,length/2,80);
+    iRectangle(width/2-130,gallary,130*2,130);
+    iRectangle(width/2-130,length-gallary-130,130*2,130);
+    iRectangle(width/2-80,gallary/2,160,gallary/2);
+    iRectangle(width/2-80,length-gallary,160,gallary/2);
+    //iPolygon({width/2-80,width/2-50,width/2+110,width/2+80},{gallary,gallary-20,gallary-20,gallary},4);
+    iSetColor(255,0,0);
+    iSetLineWidth(4);
+    iLine(width/2-80,gallary,width/2+80,gallary);
+    iLine(width/2-80,length-gallary,width/2+80,length-gallary);
+}
+
 void functioncaller()
 {
     
     if(timer%10==0)
     {
+        if (timer%1000==0)
+            printf("%lld\n",timer/1000);
         activepassing();
         opponentpassing();
     }
-    if(timer%7==0){
-        if(ballstate!=-1)
-            attack();
+    if(timer%5==0){
+        chooseAndTakePosition();
         activeplayermoveing();
         opponentplayermoveing();
         gkmoving();
@@ -908,8 +947,6 @@ void functioncaller()
     {
         handlecollission();
     }
-    //if(timer%10==0)
-        //ballcarrier();
 }
 
 void chooselevel()
@@ -938,6 +975,7 @@ void iDraw()
     }
     else if(page_number==1)
     {
+        drawfield();
         chooselevel();
         functioncaller();
         spritepositionupdate();
@@ -945,6 +983,7 @@ void iDraw()
     }
     else if(page_number==2)
     {
+        drawfield();
         functioncaller();
         spritepositionupdate();
         spriteshow();
@@ -964,18 +1003,6 @@ void iDraw()
 
     }
 
-    /*for(i=0;i<6;i++){
-        iSetColor(0,150,0);
-        iFilledCircle(playerpointer[i][0],playerpointer[i][1],8);
-        iSetColor(150,0,150);
-        iFilledCircle(opponentpointer[i][0],opponentpointer[i][1],8);
-    }
-    iSetColor(0,150,0);
-    iFilledCircle(gkpointer[0][0],gkpointer[0][1],8);
-    iSetColor(150,0,150);
-    iFilledCircle(gkpointer[1][0],gkpointer[1][1],8);
-    iSetColor(255,255,255);
-    iFilledCircle(ballpointer[0],ballpointer[1],3);*/
 }
 
 /*
@@ -1087,62 +1114,7 @@ GLUT_KEY_PAGE_UP, GLUT_KEY_PAGE_DOWN, GLUT_KEY_HOME, GLUT_KEY_END,
 GLUT_KEY_INSERT */
 void iSpecialKeyboard(unsigned char key)
 {
-    if(key==GLUT_KEY_HOME)
-        page_number=0;
-    /*switch (key)
-    {
-    case GLUT_KEY_UP:
-        if(isSpecialKeyPressed(GLUT_KEY_LEFT)){
-            playerpointer[activeplayer][0]-=speed/1.4;
-            playerpointer[activeplayer][1]+=speed/1.4;
-        }
-        else if(isSpecialKeyPressed(GLUT_KEY_RIGHT)){
-            playerpointer[activeplayer][0]+=speed/1.4;
-            playerpointer[activeplayer][1]+=speed/1.4;
-        }
-        else
-            playerpointer[activeplayer][1]+=speed;
-        break;
-    case GLUT_KEY_DOWN:
-        if(isSpecialKeyPressed(GLUT_KEY_LEFT)){
-            playerpointer[activeplayer][0]-=speed/1.4;
-            playerpointer[activeplayer][1]-=speed/1.4;
-        }
-        else if(isSpecialKeyPressed(GLUT_KEY_RIGHT)){
-            playerpointer[activeplayer][0]+=speed/1.4;
-            playerpointer[activeplayer][1]-=speed/1.4;
-        }
-        else
-            playerpointer[activeplayer][1]-=speed;
-        break;
-    case GLUT_KEY_RIGHT:
-        if(isSpecialKeyPressed(GLUT_KEY_UP)){
-            playerpointer[activeplayer][0]+=speed/1.4;
-            playerpointer[activeplayer][1]+=speed/1.4;
-        }
-        else if(isSpecialKeyPressed(GLUT_KEY_DOWN)){
-            playerpointer[activeplayer][0]+=speed/1.4;
-            playerpointer[activeplayer][1]-=speed/1.4;
-        }
-        else
-            playerpointer[activeplayer][0]+=speed*1;
-        break;
-    case GLUT_KEY_LEFT:
-        if(isSpecialKeyPressed(GLUT_KEY_UP)){
-            playerpointer[activeplayer][0]-=speed/1.4;
-            playerpointer[activeplayer][1]+=speed/1.4;
-        }
-        else if(isSpecialKeyPressed(GLUT_KEY_DOWN)){
-            playerpointer[activeplayer][0]-=speed/1.4;
-            playerpointer[activeplayer][1]-=speed/1.4;
-        }
-        else
-            playerpointer[activeplayer][0]-=speed;
-        break;
-    // place your codes for other keys here
-    default:
-        break;
-    }*/
+    
 }
 
 int main(int argc, char *argv[])
