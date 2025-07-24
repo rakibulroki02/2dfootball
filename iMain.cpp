@@ -3,27 +3,115 @@
 #include<math.h>
 #include<stdlib.h>
 
-Sprite players[6],opponents[6],gk[2],fball, fields;
-Image ball[1],player[1],opponent[1],field[1]; 
+Sprite players[6],opponents[6],gk[2],fball, pauseButtons;
+Image ball[1],player[1],opponent[1],field, backButton, pauseButton; 
 double length=120*6 , width = 90*6, gallary=40, goalbar=160;
 long long int  timer=0,i,ii,gametime=0,tracktime=0;
 int level,scoreplayer=0,scoreopp=0;
-double speed=0.6 ,gkspeed=0.5, passedballspeed=1, shootballspeed=1.3, acceleration=-0.002, varAcceleration[2];
+double constSpeed=0.5, speed=0.6 ,gkspeed=0.5, passedballspeed=1, shootballspeed=1.3, acceleration=-0.002, varAcceleration[2];
 double playerradius=8,ballradius=5,collidepos=5;
 double newball[4]={width/2,length/2};
 double gkpointer[2][2]={ {width/2,gallary+playerradius},{width/2,length-gallary-playerradius} };
 double newgk[2][2]={ {width/2,gallary+playerradius},{width/2,length-gallary-playerradius} };
-double playerposition[2][6][4]={{{width/2,length*8/10,width/2,length*8/10,}, {width/6,length*8/10,width/6,length*8/10}, {width*5/6,length*8/10,width*5/6,length*8/10},{width*2/6,length*7/10,width*2/6,length*7/10},{width*4/6,length*7/10,width*4/6,length*7/10} , {width/2,length*6/10,width/2,length*6/10} },{ {width/2,length*2/10,width/2,length*2/10},{width/6,length*2/10,width/6,length*2/10},{width*5/6,length*2/10,width*5/6,length*2/10},{width*2/6,length*7/20,width*2/6,length*7/20},{width*4/6,length*7/20,width*4/6,length*7/20} , {width/2,length/2,width/2,length/2} }};
-double newplayerposition[2][6][4]={{{width/2,length*8/10,width/2,length*8/10,}, {width/6,length*8/10,width/6,length*8/10}, {width*5/6,length*8/10,width*5/6,length*8/10},{width*2/6,length*7/10,width*2/6,length*7/10},{width*4/6,length*7/10,width*4/6,length*7/10} , {width/2,length*6/10,width/2,length*6/10} },{ {width/2,length*2/10,width/2,length*2/10},{width/6,length*2/10,width/6,length*2/10},{width*5/6,length*2/10,width*5/6,length*2/10},{width*2/6,length*7/20,width*2/6,length*7/20},{width*4/6,length*7/20,width*4/6,length*7/20} , {width/2,length/2,width/2,length/2} }};
+double playerposition[2][6][4]={{{width/2,length*8/10,width/2,length*8/10,}, {width/6,length*8/10,width/6,length*8/10}, {width*5/6,length*8/10,width*5/6,length*8/10},{width*4/6,length*7/10,width*4/6,length*7/10},{width*2/6,length*7/10,width*2/6,length*7/10} , {width/2,length*6/10,width/2,length*6/10} },{ {width/2,length*2/10,width/2,length*2/10},{width/6,length*2/10,width/6,length*2/10},{width*5/6,length*2/10,width*5/6,length*2/10} ,{width*4/6,length*7/20,width*4/6,length*7/20} ,{width*2/6,length*7/20,width*2/6,length*7/20}, {width/2,length/2,width/2,length/2} }};
+double newplayerposition[2][6][4]={{{width/2,length*8/10,width/2,length*8/10,}, {width/6,length*8/10,width/6,length*8/10}, {width*5/6,length*8/10,width*5/6,length*8/10} ,{width*4/6,length*7/10,width*4/6,length*7/10} ,{width*2/6,length*7/10,width*2/6,length*7/10}, {width/2,length*6/10,width/2,length*6/10} },{ {width/2,length*2/10,width/2,length*2/10},{width/6,length*2/10,width/6,length*2/10},{width*5/6,length*2/10,width*5/6,length*2/10},{width*4/6,length*7/20,width*4/6,length*7/20} ,{width*2/6,length*7/20,width*2/6,length*7/20}, {width/2,length/2,width/2,length/2} }};
 double ballpointer[4]={width/2,length/2};
 int activeplayer=5,ballstate=2,ballholder=activeplayer,activeplayeropp=5,helpingplayer=4,helpingplayeropp=4,lastTouch=1;
 int page_number=0,coverpagetime=100;
 double dxy=30;
-double positionField[2][6][4]={{{4*width/7, 3*width/7, length-gallary, length/2}, {10*width/20, gallary, length-gallary, 10*length/20}, {width-gallary, 10*width/20,  length-gallary, 10*length/20}, {10*width/20, gallary, 10*length/20, gallary}, {width-gallary, 10*width/20, 10*length/20, gallary}, {10*width/20, 10*width/20, length/2, gallary}}, {{4*width/7, 3*width/7, length/2, gallary}, {10*width/20, gallary, 10*length/20, gallary}, {width-gallary, 10*width/20, 10*length/20, gallary}, {10*width/20, gallary, length-gallary, 10*length/20}, {width-gallary, 10*width/20, length-gallary, 10*length/20}, {10*width/20, 10*width/20, length-gallary, length/2}}};
+double positionField[2][6][4]={{{4*width/7, 3*width/7, length-gallary, length/2}, {3*width/7, gallary, length-gallary, 10*length/20}, {width-gallary, 4*width/7,  length-gallary, 10*length/20} , {width-gallary, 4*width/7, 10*length/20, gallary}, {3*width/7, gallary, 10*length/20, gallary}, {4*width/7, 3*width/7, length/2, gallary}}, {{4*width/7, 3*width/7, length/2, gallary}, {3*width/7, gallary, 10*length/20, gallary}, {width-gallary, 4*width/7, 10*length/20, gallary},{width-gallary, 4*width/7, length-gallary, 10*length/20}, {3*width/7, gallary, length-gallary, 10*length/20},  {4*width/7, 3*width/7, length-gallary, length/2}}};
 double range[2][6][2]={{{7*width/20,7*width/20},{-7*width/20,7*width/20},{7*width/20,7*width/20},{-7*width/20,-7*width/20},{7*width/20,-7*width/20},{7*width/20,-7*width/20}},{{7*width/20,-7*width/20},{-7*width/20,-7*width/20},{7*width/20,-7*width/20},{-7*width/20,7*width/20},{7*width/20,7*width/20},{7*width/20,7*width/20}}};
-int dX=30, dY=50;
+int dX=60, dY=100;
+int timer2=0;
+int frameCount = 0;
+int previousTime = 0, previousFpsTime = 0;
+int fps = 0;
 
+void iShowSpeed(double x, double y)
+{
+    int currentTime = glutGet(GLUT_ELAPSED_TIME);
+    frameCount++;
+    if (previousFpsTime == 0)
+    {
+        previousFpsTime = currentTime; // Initialize on first call
+        frameCount = 0;
+    }
+    else
+    {
+        int elapsedFpsTime = currentTime - previousFpsTime;
 
+        if (elapsedFpsTime > 1000)
+        {
+            fps = (frameCount * 1000.0f) / elapsedFpsTime;
+            frameCount = 0;
+            previousFpsTime = currentTime;
+        }
+    }
+
+    char fpsText[20];
+    sprintf(fpsText, "FPS: %d", fps);
+    iText(x, y, fpsText);
+}
+
+void loadresources()
+{
+    
+    iLoadImage(&backButton , "pause.png");
+
+    iLoadFramesFromSheet(ball, "ball.png" ,1,1);
+    iChangeSpriteFrames(&fball,ball,1);
+
+    for(int n=0;n<6;n++)
+    {
+        //iInitSprite(&players[n],0xFFFFFF);
+        iLoadFramesFromSheet(player, "player.bmp" ,1,1);
+        iChangeSpriteFrames(&players[n],player,1);
+        if(n==0)
+        {
+            //iInitSprite(&gk[n],0xFFFFFF);
+            iChangeSpriteFrames(&gk[n],player,1);
+            iSetSpritePosition(&gk[n],gkpointer[n][0],gkpointer[n][1]);
+        }
+
+        //iInitSprite(&opponents[n],-1);
+        iLoadFramesFromSheet(opponent, "opponent.png" ,1,1);
+        iChangeSpriteFrames(&opponents[n],opponent,1);
+        if(n==1) 
+        {
+            //iInitSprite(&gk[n],-1);
+            iChangeSpriteFrames(&gk[n],opponent,1);
+            iSetSpritePosition(&gk[n],gkpointer[n][0],gkpointer[n][1]);
+        }
+        iSetSpritePosition(&players[n],playerposition[1][n][0],playerposition[1][n][1]);
+        iSetSpritePosition(&opponents[n],playerposition[0][n][0],playerposition[0][n][1]);
+
+        
+        iLoadFramesFromSheet(&pauseButton , "pause.png", 1,1);
+        iChangeSpriteFrames(&pauseButtons, &pauseButton, 1);
+    }
+}
+
+/*void loadresources()
+{
+    iInitSprite(&pauseButtons, -1);
+    iLoadFramesFromSheet(&pauseButton , "pause.png", 1,1);
+    iChangeSpriteFrames(&pauseButtons, &pauseButton, 1);
+
+    iInitSprite(&fball, 0xFFFFFF);
+    for(int n=0;n<6;n++)
+    {
+        iInitSprite(&players[n],0xFFFFFF);
+
+        iInitSprite(&opponents[n],0xFFFFFF);
+    }
+
+    for(int n=0;n<2;n++)
+    {
+        iInitSprite(&gk[n],0xFFFFFF);
+    }
+
+    iLoadImage(&pauseButton, "pause.png");
+}*/
 
 void resetvariables()
 {
@@ -44,7 +132,7 @@ bool checkcollision(double x1,double y1,double x2, double y2, double r)
 
 int playerOnTheWay(double x1,double y1,double x3,double y3,double x2,double y2,double r)
 {
-    if((abs(((y2-y1)*x3-(x2-x1)*y3+y1*(x2-x1)-x1*(y2-y1)))/ sqrt((y2-y1)*(y2-y1)+(x2-x1)*(x2-x1)))>3*r)
+    if((abs((int)((y2-y1)*x3-(x2-x1)*y3+y1*(x2-x1)-x1*(y2-y1)))/ sqrt((y2-y1)*(y2-y1)+(x2-x1)*(x2-x1)))>3*r)
         return 0;
     else
     {
@@ -55,7 +143,7 @@ int playerOnTheWay(double x1,double y1,double x3,double y3,double x2,double y2,d
     }
 }
 
-void choosePosition(int t,int m, double maxX, double minX, double maxY, double minY, double rangeX, double rangeY)//int accuracy, int urgency
+/*void choosePosition(int t,int m, double maxX, double minX, double maxY, double minY, double rangeX, double rangeY)//int accuracy, int urgency
 {
     //X axis movement
     if(ballpointer[0]>=maxX)
@@ -115,11 +203,81 @@ void choosePosition(int t,int m, double maxX, double minX, double maxY, double m
         }
     }
     
+}*/
+
+void choosePosition(int t,int m, double maxX, double minX, double maxY, double minY, double rangeX, double rangeY)//int accuracy, int urgency
+{
+    //if(ballstate==t*2-1)
+    {
+        //X axis movement
+        if(ballpointer[0]>=maxX)
+        {
+            if(ballpointer[0]-rangeX>=maxX)
+                playerposition[t][m][2]=maxX - rand() % dX;
+            else
+                playerposition[t][m][2]=maxX - rand() % (int)(rangeX-ballpointer[1]+maxX);
+        }
+        else if(ballpointer[0]<=minX)
+        {
+            if(ballpointer[0]+rangeX <= minX)
+                playerposition[t][m][2]=minX + rand() % dX;
+            else
+                playerposition[t][m][2]=minX+ rand() % (int)(ballpointer[0]+rangeX-minX);
+        }
+        else
+        {
+            if(ballpointer[0]>=minX+2*(maxX-minX)/3)
+                playerposition[t][m][2]=ballpointer[0] - rand() % (int) rangeX;
+            else if(ballpointer[0]<= minX+(maxX-minX)/3)
+                playerposition[t][m][2]=ballpointer[0] + rand() % (int) rangeX;
+            else
+                playerposition[t][m][2]=minX + rand() % (int) (maxX-minX);
+        }
+
+        //Y axis movement
+        if(ballpointer[1]>=maxY)
+        {
+            if(ballpointer[1]-rangeY >= maxY)
+                playerposition[t][m][3]=maxY - rand() % dY;
+            else
+                playerposition[t][m][3]=maxY- rand() % (int)(rangeY-ballpointer[1]+maxY);
+        }
+        else if(ballpointer[1]<=minY)
+        {
+            if(ballpointer[1]+rangeY <= minY)
+                playerposition[t][m][3]=minY + rand() % dY;
+            else
+                playerposition[t][m][3]=minY+ rand() % (int)(ballpointer[1]+rangeY-minY);
+        }
+        else
+        {
+            if(ballstate==1)
+            {
+                if(ballpointer[1]+rangeY<=maxY)
+                    playerposition[t][m][3]=ballpointer[1]+rand() % (int)(rangeY);
+                else
+                    playerposition[t][m][3]=ballpointer[1]+rand() % (int)(maxY-ballpointer[1]);
+            }
+            else if(ballstate==-1)
+            {
+                if(ballpointer[1]-rangeY>=minY)
+                    playerposition[t][m][3]=ballpointer[1]- rand() % (int)(rangeY);
+                else
+                    playerposition[t][m][3]=ballpointer[1]-rand() % (int)(ballpointer[1]-minY);
+            }
+        }
+    }
+    //else
+    {
+
+    }
+
 }
 
-bool timetoChoosePosition(int team, int m)
+bool timetoChoosePosition(int t, int m)
 {
-    if(playerposition[team][m][0]<playerposition[team][m][2]+dxy && playerposition[team][m][0]>playerposition[team][m][2]-dxy && playerposition[team][m][1]<playerposition[team][m][3]+dxy && playerposition[team][m][1]>playerposition[team][m][3]-dxy)
+    //if(playerposition[team][m][0]<playerposition[team][m][2]+dxy && playerposition[team][m][0]>playerposition[team][m][2]-dxy && playerposition[team][m][1]<playerposition[team][m][3]+dxy && playerposition[team][m][1]>playerposition[team][m][3]-dxy)
+    if((playerposition[t][m][2]-playerposition[t][m][0])*(playerposition[t][m][2]-playerposition[t][m][0])+(playerposition[t][m][3]-playerposition[t][m][1])*(playerposition[t][m][3]-playerposition[t][m][1])<dxy*dxy)
         return 1;
     else
         return 0;
@@ -138,12 +296,17 @@ void chooseAndTakePosition()
             }
             else
             {
-                if((playerposition[1][j][2]-playerposition[1][j][0])*(playerposition[1][j][2]-playerposition[1][j][0])+(playerposition[1][j][3]-playerposition[1][j][1])*(playerposition[1][j][3]-playerposition[1][j][1])>2)
+                if((playerposition[1][j][2]-playerposition[1][j][0])*(playerposition[1][j][2]-playerposition[1][j][0])+(playerposition[1][j][3]-playerposition[1][j][1])*(playerposition[1][j][3]-playerposition[1][j][1])>0)
                 {
-                    playerposition[1][j][0]+= (3*speed/5) *(playerposition[1][j][2]-playerposition[1][j][0])/sqrt((playerposition[1][j][2]-playerposition[1][j][0])*(playerposition[1][j][2]-playerposition[1][j][0])+(playerposition[1][j][3]-playerposition[1][j][1])*(playerposition[1][j][3]-playerposition[1][j][1]));
-                    playerposition[1][j][1]+= (3*speed/5) *(playerposition[1][j][3]-playerposition[1][j][1])/sqrt((playerposition[1][j][2]-playerposition[1][j][0])*(playerposition[1][j][2]-playerposition[1][j][0])+(playerposition[1][j][3]-playerposition[1][j][1])*(playerposition[1][j][3]-playerposition[1][j][1]));
+                    playerposition[1][j][0]+= (constSpeed) *(playerposition[1][j][2]-playerposition[1][j][0])/sqrt(1+(playerposition[1][j][2]-playerposition[1][j][0])*(playerposition[1][j][2]-playerposition[1][j][0])+(playerposition[1][j][3]-playerposition[1][j][1])*(playerposition[1][j][3]-playerposition[1][j][1]));
+                    playerposition[1][j][1]+= (constSpeed) *(playerposition[1][j][3]-playerposition[1][j][1])/sqrt(1+(playerposition[1][j][2]-playerposition[1][j][0])*(playerposition[1][j][2]-playerposition[1][j][0])+(playerposition[1][j][3]-playerposition[1][j][1])*(playerposition[1][j][3]-playerposition[1][j][1]));
                 }
             }
+        }
+        else
+        {
+            playerposition[1][j][2]=playerposition[1][j][0];
+            playerposition[1][j][3]=playerposition[1][j][1];
         }
         if(activeplayeropp != j)
         {
@@ -154,11 +317,11 @@ void chooseAndTakePosition()
             }
             else
             {
-                if((playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1])>2)
+                if((playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1])>0)
                 {
-                    playerposition[0][j][0]+= speed*3/5*(playerposition[0][j][2]-playerposition[0][j][0])/sqrt((playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1]));
-                    playerposition[0][j][1]+= speed*3/5*(playerposition[0][j][3]-playerposition[0][j][1])/sqrt((playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1])); 
-                }   
+                    playerposition[0][j][0]+= constSpeed*(playerposition[0][j][2]-playerposition[0][j][0])/sqrt(1+(playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1]));
+                    playerposition[0][j][1]+= constSpeed*(playerposition[0][j][3]-playerposition[0][j][1])/sqrt(1+(playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1])); 
+                }
             }
         }
     }
@@ -504,33 +667,6 @@ void throwCornerOutGoal()
     }
 }
 
-void loadresources()
-{
-    iSetSpritePosition(&fields,0,0);
-    iLoadFramesFromSheet(ball, "ball.png" ,1,1);
-    iChangeSpriteFrames(&fball,ball,1);
-
-    for(int n=0;n<6;n++)
-    {
-        iLoadFramesFromSheet(player, "player.png" ,1,1);
-        iChangeSpriteFrames(&players[n],player,1);
-        if(n==0)
-        {
-            iChangeSpriteFrames(&gk[n],player,1);
-            iSetSpritePosition(&gk[n],gkpointer[n][0],gkpointer[n][1]);
-        }
-        iLoadFramesFromSheet(opponent, "opponent.png" ,1,1);
-        iChangeSpriteFrames(&opponents[n],opponent,1);
-        if(n==1)
-        {
-            iChangeSpriteFrames(&gk[n],opponent,1);
-            iSetSpritePosition(&gk[n],gkpointer[n][0],gkpointer[n][1]);
-        }
-        iSetSpritePosition(&players[n],playerposition[1][n][0],playerposition[1][n][1]);
-        iSetSpritePosition(&opponents[n],playerposition[0][n][0],playerposition[0][n][1]);
-    }
-}
-
 void spritepositionupdate()
 {
     for(i=0;i<6;i++)
@@ -541,6 +677,7 @@ void spritepositionupdate()
             iSetSpritePosition(&gk[i],gkpointer[i][0]-playerradius,gkpointer[i][1]-playerradius);
     }
     iSetSpritePosition(&fball,ballpointer[0]-ballradius,ballpointer[1]-ballradius);
+    iSetSpritePosition(&pauseButtons,width-15,length-15);
 }
 
 void timeUpdater(){
@@ -591,12 +728,12 @@ void activepassing()
         
         if(isKeyPressed('p') || isKeyPressed('l'))
         {
-            ballstate=0;
             ballpointer[2]=0;
             ballpointer[3]=0;
             varAcceleration[0]=0;
             varAcceleration[1]=0;
             if(isSpecialKeyPressed(GLUT_KEY_UP)){
+                ballstate=0;
                 if(isSpecialKeyPressed(GLUT_KEY_LEFT)){
                     ballpointer[0]-=playerradius*4/6;
                     ballpointer[1]+=playerradius*4/6;
@@ -706,12 +843,12 @@ void opponentpassing()
         
         if(isKeyPressed('t') || isKeyPressed('g'))
         {
-            ballstate=0;
             ballpointer[2]=0;
             ballpointer[3]=0;
             varAcceleration[0]=0;
             varAcceleration[1]=0;
             if(isKeyPressed('w')){
+                ballstate=0;
                 if(isKeyPressed('a')){
                     ballpointer[0]-=playerradius*4/6;
                     ballpointer[1]+=playerradius*4/6;
@@ -812,6 +949,10 @@ void opponentpassing()
 
 void activeplayermoveing()
 {
+    if(isKeyPressed('k'))
+        speed=constSpeed*1.5;
+    else
+        speed=constSpeed;
     if(timer%25==0)chooseactiveplayer();
     if(activeplayer==-1)
     {
@@ -857,6 +998,10 @@ void activeplayermoveing()
 
 void opponentplayermoveing()
 {
+    if(isKeyPressed('f'))
+        speed=constSpeed*1.5;
+    else
+        speed=constSpeed;
     if(timer%25==0)chooseopponentactiveplayer();
     if(activeplayeropp==-1)
     {
@@ -955,12 +1100,13 @@ void spriteshow()
     iShowSprite(&gk[0]);
     iShowSprite(&gk[1]);
     iShowSprite(&fball);
-    iShowImage(width-15,length-15,"pause.png");
+    //iShowLoadedImage(width-15,length-15,&pauseButton);
+    iShowSprite(&pauseButtons);
 }
 
 void backbutton()
 {
-    iShowImage(5,50,"back.png");
+    iShowLoadedImage(5,50, &backButton);
 }
 
 void drawfield()
@@ -1001,8 +1147,6 @@ void functioncaller()
     if(timer%10==0)
     {
         throwCornerOutGoal();
-        if (timer%1000==0)
-            printf("%d  %d\n",ballstate,lastTouch);
         activepassing();
         opponentpassing();
     }
@@ -1033,6 +1177,7 @@ function iDraw() is called again and again by the system.
 void iDraw()
 {
     // place your drawing codes here
+    timeUpdater();
     iClear();
     if(page_number==0)
     {
@@ -1075,7 +1220,10 @@ void iDraw()
             exit(0);
 
     }
-
+    iShowSpeed(10,10);
+    char timertext[20];
+    sprintf(timertext, "Timer: %lld   %d", timer,timer2);
+    iText(10,30,timertext);
 }
 
 /*
@@ -1203,7 +1351,7 @@ int main(int argc, char *argv[])
     glutInit(&argc, argv);
     // place your own initialization codes here.
     loadresources();
-    iSetTimer(1, timeUpdater);
+    //iSetTimer(1, timeUpdater);
     iInitialize(width, length, "2D Football");
     return 0;
 }
