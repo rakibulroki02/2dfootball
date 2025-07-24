@@ -950,7 +950,7 @@ void opponentpassing()
 void activeplayermoveing()
 {
     if(isKeyPressed('k'))
-        speed=constSpeed*1.5;
+        speed=constSpeed*2;
     else
         speed=constSpeed;
     if(timer%25==0)chooseactiveplayer();
@@ -999,7 +999,7 @@ void activeplayermoveing()
 void opponentplayermoveing()
 {
     if(isKeyPressed('f'))
-        speed=constSpeed*1.5;
+        speed=constSpeed*2;
     else
         speed=constSpeed;
     if(timer%25==0)chooseopponentactiveplayer();
