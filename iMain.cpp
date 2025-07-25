@@ -6,7 +6,9 @@
 Sprite players[6],opponents[6],gk[2],fball, pauseButtons;
 Image ball[1],player[1],opponent[1],field, backButton, pauseButton; 
 double length=120*6 , width = 90*6, gallary=40, goalbar=160;
-long long int  timer=0,i,ii,gametime=0,tracktime=0;
+long long int i,ii,gametime=0,tracktime=0;
+double timer=1;
+int sec,minit;
 int level,scoreplayer=0,scoreopp=0;
 double constSpeed=0.5, speed=0.6 ,gkspeed=0.5, passedballspeed=1, shootballspeed=1.3, acceleration=-0.002, varAcceleration[2];
 double playerradius=8,ballradius=5,collidepos=5;
@@ -20,9 +22,7 @@ int activeplayer=5,ballstate=2,ballholder=activeplayer,activeplayeropp=5,helping
 int page_number=0,coverpagetime=100;
 double dxy=30;
 double positionField[2][6][4]={{{4*width/7, 3*width/7, length-gallary, length/2}, {3*width/7, gallary, length-gallary, 10*length/20}, {width-gallary, 4*width/7,  length-gallary, 10*length/20} , {width-gallary, 4*width/7, 10*length/20, gallary}, {3*width/7, gallary, 10*length/20, gallary}, {4*width/7, 3*width/7, length/2, gallary}}, {{4*width/7, 3*width/7, length/2, gallary}, {3*width/7, gallary, 10*length/20, gallary}, {width-gallary, 4*width/7, 10*length/20, gallary},{width-gallary, 4*width/7, length-gallary, 10*length/20}, {3*width/7, gallary, length-gallary, 10*length/20},  {4*width/7, 3*width/7, length-gallary, length/2}}};
-double range[2][6][2]={{{7*width/20,7*width/20},{-7*width/20,7*width/20},{7*width/20,7*width/20},{-7*width/20,-7*width/20},{7*width/20,-7*width/20},{7*width/20,-7*width/20}},{{7*width/20,-7*width/20},{-7*width/20,-7*width/20},{7*width/20,-7*width/20},{-7*width/20,7*width/20},{7*width/20,7*width/20},{7*width/20,7*width/20}}};
 int dX=60, dY=100;
-int timer2=0;
 int frameCount = 0;
 int previousTime = 0, previousFpsTime = 0;
 int fps = 0;
@@ -52,6 +52,30 @@ void iShowSpeed(double x, double y)
     sprintf(fpsText, "FPS: %d", fps);
     iText(x, y, fpsText);
 }
+
+/*int igetspeed()
+{
+    int currentTime = glutGet(GLUT_ELAPSED_TIME);
+    frameCount++;
+    if (previousFpsTime == 0)
+    {
+        previousFpsTime = currentTime; // Initialize on first call
+        frameCount = 0;
+    }
+    else
+    {
+        int elapsedFpsTime = currentTime - previousFpsTime;
+
+        if (elapsedFpsTime > 1000)
+        {
+            fps = (frameCount * 1000.0f) / elapsedFpsTime;
+            frameCount = 0;
+            previousFpsTime = currentTime;
+        }
+    }
+
+    return fps;
+}*/
 
 void loadresources()
 {
@@ -91,28 +115,6 @@ void loadresources()
     }
 }
 
-/*void loadresources()
-{
-    iInitSprite(&pauseButtons, -1);
-    iLoadFramesFromSheet(&pauseButton , "pause.png", 1,1);
-    iChangeSpriteFrames(&pauseButtons, &pauseButton, 1);
-
-    iInitSprite(&fball, 0xFFFFFF);
-    for(int n=0;n<6;n++)
-    {
-        iInitSprite(&players[n],0xFFFFFF);
-
-        iInitSprite(&opponents[n],0xFFFFFF);
-    }
-
-    for(int n=0;n<2;n++)
-    {
-        iInitSprite(&gk[n],0xFFFFFF);
-    }
-
-    iLoadImage(&pauseButton, "pause.png");
-}*/
-
 void resetvariables()
 {
     memcpy(ballpointer,newball,4*sizeof(double));
@@ -143,71 +145,9 @@ int playerOnTheWay(double x1,double y1,double x3,double y3,double x2,double y2,d
     }
 }
 
-/*void choosePosition(int t,int m, double maxX, double minX, double maxY, double minY, double rangeX, double rangeY)//int accuracy, int urgency
-{
-    //X axis movement
-    if(ballpointer[0]>=maxX)
-    {
-        if(ballpointer[0]-rangeX>=maxX)
-            playerposition[t][m][2]=maxX - rand() % dX;
-        else
-            playerposition[t][m][2]=maxX - rand() % (int)(rangeX-ballpointer[1]+maxX);
-    }
-    else if(ballpointer[0]<=minX)
-    {
-        if(ballpointer[0]+rangeX <= minX)
-            playerposition[t][m][2]=minX + rand() % dX;
-        else
-            playerposition[t][m][2]=minX+ rand() % (int)(ballpointer[0]+rangeX-minX);
-    }
-    else
-    {
-        if(ballpointer[0]>=minX+2*(maxX-minX)/3)
-            playerposition[t][m][2]=ballpointer[0] - rand() % (int) rangeX;
-        else if(ballpointer[0]<= minX+(maxX-minX)/3)
-            playerposition[t][m][2]=ballpointer[0] + rand() % (int) rangeX;
-        else
-            playerposition[t][m][2]=minX + rand() % (int) (maxX-minX);
-    }
-
-    //Y axis movement
-    if(ballpointer[1]>=maxY)
-    {
-        if(ballpointer[1]-rangeY >= maxY)
-            playerposition[t][m][3]=maxY - rand() % dY;
-        else
-            playerposition[t][m][3]=maxY- rand() % (int)(rangeY-ballpointer[1]+maxY);
-    }
-    else if(ballpointer[1]<=minY)
-    {
-        if(ballpointer[1]+rangeY <= minY)
-            playerposition[t][m][3]=minY + rand() % dY;
-        else
-            playerposition[t][m][3]=minY+ rand() % (int)(ballpointer[1]+rangeY-minY);
-    }
-    else
-    {
-        if(ballstate==1)
-        {
-            if(ballpointer[1]+rangeY<=maxY)
-                playerposition[t][m][3]=ballpointer[1]+rand() % (int)(rangeY);
-            else
-                playerposition[t][m][3]=ballpointer[1]+rand() % (int)(maxY-ballpointer[1]);
-        }
-        else if(ballstate==-1)
-        {
-            if(ballpointer[1]-rangeY>=minY)
-                playerposition[t][m][3]=ballpointer[1]- rand() % (int)(rangeY);
-            else
-                playerposition[t][m][3]=ballpointer[1]-rand() % (int)(ballpointer[1]-minY);
-        }
-    }
-    
-}*/
-
 void choosePosition(int t,int m, double maxX, double minX, double maxY, double minY, double rangeX, double rangeY)//int accuracy, int urgency
 {
-    //if(ballstate==t*2-1)
+    //if(ballstate==t*2-1 || ballstate==0)
     {
         //X axis movement
         if(ballpointer[0]>=maxX)
@@ -215,21 +155,23 @@ void choosePosition(int t,int m, double maxX, double minX, double maxY, double m
             if(ballpointer[0]-rangeX>=maxX)
                 playerposition[t][m][2]=maxX - rand() % dX;
             else
-                playerposition[t][m][2]=maxX - rand() % (int)(rangeX-ballpointer[1]+maxX);
+                playerposition[t][m][2]=maxX - rand() % (int)(rangeX-ballpointer[0]+maxX+1);
+            
         }
         else if(ballpointer[0]<=minX)
         {
             if(ballpointer[0]+rangeX <= minX)
                 playerposition[t][m][2]=minX + rand() % dX;
             else
-                playerposition[t][m][2]=minX+ rand() % (int)(ballpointer[0]+rangeX-minX);
+                playerposition[t][m][2]=minX+ rand() % (int)(ballpointer[0]+rangeX-minX+1);
+            
         }
         else
         {
             if(ballpointer[0]>=minX+2*(maxX-minX)/3)
-                playerposition[t][m][2]=ballpointer[0] - rand() % (int) rangeX;
+                playerposition[t][m][2]=ballpointer[0] - rand() % (int)rangeX;
             else if(ballpointer[0]<= minX+(maxX-minX)/3)
-                playerposition[t][m][2]=ballpointer[0] + rand() % (int) rangeX;
+                playerposition[t][m][2]=ballpointer[0] + rand() % (int)rangeX;
             else
                 playerposition[t][m][2]=minX + rand() % (int) (maxX-minX);
         }
@@ -240,14 +182,16 @@ void choosePosition(int t,int m, double maxX, double minX, double maxY, double m
             if(ballpointer[1]-rangeY >= maxY)
                 playerposition[t][m][3]=maxY - rand() % dY;
             else
-                playerposition[t][m][3]=maxY- rand() % (int)(rangeY-ballpointer[1]+maxY);
+                playerposition[t][m][3]=maxY- rand() % (int)(rangeY-ballpointer[1]+maxY+1);
+            
         }
         else if(ballpointer[1]<=minY)
         {
             if(ballpointer[1]+rangeY <= minY)
                 playerposition[t][m][3]=minY + rand() % dY;
             else
-                playerposition[t][m][3]=minY+ rand() % (int)(ballpointer[1]+rangeY-minY);
+                playerposition[t][m][3]=minY+ rand() % (int)(ballpointer[1]+rangeY-minY+1);
+            
         }
         else
         {
@@ -256,21 +200,41 @@ void choosePosition(int t,int m, double maxX, double minX, double maxY, double m
                 if(ballpointer[1]+rangeY<=maxY)
                     playerposition[t][m][3]=ballpointer[1]+rand() % (int)(rangeY);
                 else
-                    playerposition[t][m][3]=ballpointer[1]+rand() % (int)(maxY-ballpointer[1]);
+                    playerposition[t][m][3]=ballpointer[1]+rand() % (int)(maxY-ballpointer[1]+1);
+                
             }
             else if(ballstate==-1)
             {
                 if(ballpointer[1]-rangeY>=minY)
                     playerposition[t][m][3]=ballpointer[1]- rand() % (int)(rangeY);
                 else
-                    playerposition[t][m][3]=ballpointer[1]-rand() % (int)(ballpointer[1]-minY);
+                    playerposition[t][m][3]=ballpointer[1]-rand() % (int)(ballpointer[1]-minY+1);
+                
             }
         }
     }
-    //else
+    /*else
     {
+        if(ballpointer[0]==playerposition[!t][5-m][0])
+            playerposition[t][m][2]=ballpointer[0];
+        else if(ballpointer[0]<playerposition[!t][5-m][0])
+        {
+            if(ballpointer[0]<minX)
+                playerposition[t][m][2]=playerposition[!t][5-m][0]- rand() % (int)(playerposition[!t][5-m][0]-minX+1);
+            else if(ballpointer[0]>minX)
+                playerposition[t][m][2]=playerposition[!t][5-m][0]+ rand() % (int)(playerposition[!t][5-m][0] - ballpointer[0] + 1);
+            //playerposition[t][m][2]=ballpointer[0]+ rand() % (int)(playerposition[!t][5-m][0]-ballpointer[0]+1);
+        }
+        else if(ballpointer[0]>playerposition[!t][5-m][0])
+        {
+            if(ballpointer[0]>maxX)
+                playerposition[t][m][2]=playerposition[!t][5-m][0]+ rand() % (int)(maxX-playerposition[!t][5-m][0]+1);
+            else if(ballpointer[0]>maxX)
+                playerposition[t][m][2]=playerposition[!t][5-m][0]+ rand() % (int)(ballpointer[0] - playerposition[!t][5-m][0]+1);
+        }
 
-    }
+        playerposition[t][m][3]=ballpointer[1]+(playerposition[t][m][2]-ballpointer[0])*(playerposition[!t][5-m][1]-ballpointer[1])/(playerposition[!t][5-m][0]-ballpointer[0]) ;//+ pow(-1,(rand()-rand()))*15 ;
+    }*/
 
 }
 
@@ -291,7 +255,7 @@ void chooseAndTakePosition()
         {
             if (timetoChoosePosition(1,j))
             {
-                if (timer % (3000 + rand() % 3000) <= 10)
+                if ((int)timer % (3000 + rand() % 3000) <= 10)
                     choosePosition(1,j,positionField[1][j][0],positionField[1][j][1],positionField[1][j][2],positionField[1][j][3],5*width/20,5*length/20); // team 1
             }
             else
@@ -312,7 +276,7 @@ void chooseAndTakePosition()
         {
             if (timetoChoosePosition(0,j))
             {
-                if (timer % (3000 + rand() % 3000) <= 100)
+                if ((int)timer % (3000 + rand() % 3000) <= 100)
                     choosePosition(0,j,positionField[0][j][0],positionField[0][j][1],positionField[0][j][2],positionField[0][j][3],4*width/20,5*length/20); // team 0
             }
             else
@@ -681,7 +645,11 @@ void spritepositionupdate()
 }
 
 void timeUpdater(){
-    timer+=1;
+    printf("%d  %.3lf  %d %d\n",fps,timer,sec,minit);
+    if(fps!=0)
+        timer=timer+(120.0/(fps));
+    sec=timer/120;
+    minit=timer/7200;
     if((page_number==1 || page_number==2) && !(ballstate==2 || ballstate==-2))
     {
         gametime+=1;
@@ -953,7 +921,7 @@ void activeplayermoveing()
         speed=constSpeed*2;
     else
         speed=constSpeed;
-    if(timer%25==0)chooseactiveplayer();
+    if((int)timer%25==0)chooseactiveplayer();
     if(activeplayer==-1)
     {
         if(isSpecialKeyPressed( GLUT_KEY_LEFT))
@@ -1002,7 +970,7 @@ void opponentplayermoveing()
         speed=constSpeed*2;
     else
         speed=constSpeed;
-    if(timer%25==0)chooseopponentactiveplayer();
+    if((int)timer%25==0)chooseopponentactiveplayer();
     if(activeplayeropp==-1)
     {
         if(isKeyPressed( 'a'))
@@ -1144,13 +1112,13 @@ void drawfield()
 void functioncaller()
 {
     
-    if(timer%10==0)
+    if((int)timer%10==0)
     {
         throwCornerOutGoal();
         activepassing();
         opponentpassing();
     }
-    if(timer%5==0){
+    if((int)timer%5==0){
         if(!(ballstate==2 || ballstate==-2))
             chooseAndTakePosition();
         if(ballstate!=2)
@@ -1160,7 +1128,7 @@ void functioncaller()
         gkmoving();
         ballposition();
     }
-    if(timer%3==0)
+    if((int)timer%3==0)
     {
         handlecollission();
     }
@@ -1222,8 +1190,11 @@ void iDraw()
     }
     iShowSpeed(10,10);
     char timertext[20];
-    sprintf(timertext, "Timer: %lld   %d", timer,timer2);
+    sprintf(timertext, "Timer: %lf", timer);
     iText(10,30,timertext);
+    char fpss[20];
+    sprintf(fpss,"fps %d",fps);
+    iText(50,50,fpss);
 }
 
 /*
