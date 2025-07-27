@@ -2,6 +2,7 @@
 #include<string.h>
 #include<math.h>
 #include<stdlib.h>
+#include "iSound.h"
 
 Sprite players[6],opponents[6],gk[2],fball, pauseButtons;
 Image ball[1],player[1],opponent[1],field, backButton, pauseButton; 
@@ -19,13 +20,51 @@ double playerposition[2][6][4]={{{width/2,length*8/10,width/2,length*8/10,}, {wi
 double newplayerposition[2][6][4]={{{width/2,length*8/10,width/2,length*8/10,}, {width/6,length*8/10,width/6,length*8/10}, {width*5/6,length*8/10,width*5/6,length*8/10} ,{width*4/6,length*7/10,width*4/6,length*7/10} ,{width*2/6,length*7/10,width*2/6,length*7/10}, {width/2,length*6/10,width/2,length*6/10} },{ {width/2,length*2/10,width/2,length*2/10},{width/6,length*2/10,width/6,length*2/10},{width*5/6,length*2/10,width*5/6,length*2/10},{width*4/6,length*7/20,width*4/6,length*7/20} ,{width*2/6,length*7/20,width*2/6,length*7/20}, {width/2,length/2,width/2,length/2} }};
 double ballpointer[4]={width/2,length/2};
 int activeplayer=5,ballstate=2,ballholder=activeplayer,activeplayeropp=5,helpingplayer=4,helpingplayeropp=4,lastTouch=1;
-int page_number=0,coverpagetime=100;
+int page_number=3,coverpagetime=100;
 double dxy=30;
 double positionField[2][6][4]={{{4*width/7, 3*width/7, length-gallary, length/2}, {3*width/7, gallary, length-gallary, 10*length/20}, {width-gallary, 4*width/7,  length-gallary, 10*length/20} , {width-gallary, 4*width/7, 10*length/20, gallary}, {3*width/7, gallary, 10*length/20, gallary}, {4*width/7, 3*width/7, length/2, gallary}}, {{4*width/7, 3*width/7, length/2, gallary}, {3*width/7, gallary, 10*length/20, gallary}, {width-gallary, 4*width/7, 10*length/20, gallary},{width-gallary, 4*width/7, length-gallary, 10*length/20}, {3*width/7, gallary, length-gallary, 10*length/20},  {4*width/7, 3*width/7, length-gallary, length/2}}};
 int dX=60, dY=100;
 int frameCount = 0;
 int previousTime = 0, previousFpsTime = 0;
 int fps = 0;
+
+
+
+
+int const max_shoot=15;
+double spacing=30;
+double penaltyPosition[2][6][2]={{{width/2+spacing*1,length/2},{width/2+spacing*2,length/2},{width/2+spacing*3,length/2},{width/2+spacing*4,length/2},{width/2+spacing*5,length/2},{width/2+spacing*6,length/2}},{{width/2-spacing*1,length/2},{width/2-spacing*2,length/2},{width/2-spacing*3,length/2},{width/2-spacing*4,length/2},{width/2-spacing*5,length/2},{width/2-spacing*6,length/2}}};
+double penaltygk[2][2]={{width/2,length - gallary - playerradius},{width/6,length - gallary - playerradius}};
+double penaltyPositionNew[2][6][2]={{{width/2+spacing*1,length/2},{width/2+spacing*2,length/2},{width/2+spacing*3,length/2},{width/2+spacing*4,length/2},{width/2+spacing*5,length/2},{width/2+spacing*6,length/2}},{{width/2-spacing*1,length/2},{width/2-spacing*2,length/2},{width/2-spacing*3,length/2},{width/2-spacing*4,length/2},{width/2-spacing*5,length/2},{width/2-spacing*6,length/2}}};
+double penaltygkNew[2][2]={{width/2,length - gallary - playerradius},{width/6,length - gallary - playerradius}};
+double penaltyBall[4]={0,0,0,0};
+int activeTeam=0;
+int gkSet=0;
+int gkDirection=1;
+double penGkSpeed=0.6;
+int kicked=0;
+double penAcceleration[2]={0,0};
+int penScore[2][max_shoot]={0};
+double penBallSpeedConstant=.7;
+double penBallSpeed=1;
+double speedFraction=50;
+double barHieght=200;
+int barDiraction=1;
+int shootNumber=0;
+int penaltyscores[2]={0,0};
+double hypo=1;
+double barspeed=0.35;
+int penaltyended=0;
+
+
+
+bool checkcollision(double x1,double y1,double x2, double y2, double r)
+{
+    if((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)<=r*r)
+        return true;
+    else
+        return false;
+}
 
 void iShowSpeed(double x, double y)
 {
@@ -80,7 +119,7 @@ void iShowSpeed(double x, double y)
 void loadresources()
 {
     
-    iLoadImage(&backButton , "pause.png");
+    iLoadImage(&backButton , "back.png");
 
     iLoadFramesFromSheet(ball, "ball.png" ,1,1);
     iChangeSpriteFrames(&fball,ball,1);
@@ -122,14 +161,6 @@ void resetvariables()
     memcpy(playerposition, newplayerposition,2*6*4*sizeof(double)) ;
     activeplayer=5;ballstate=1;ballholder=5;
     gametime=0;
-}
-
-bool checkcollision(double x1,double y1,double x2, double y2, double r)
-{
-    if((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)<=r*r)
-        return true;
-    else
-        return false;
 }
 
 int playerOnTheWay(double x1,double y1,double x3,double y3,double x2,double y2,double r)
@@ -287,6 +318,11 @@ void chooseAndTakePosition()
                     playerposition[0][j][1]+= constSpeed*(playerposition[0][j][3]-playerposition[0][j][1])/sqrt(1+(playerposition[0][j][2]-playerposition[0][j][0])*(playerposition[0][j][2]-playerposition[0][j][0])+(playerposition[0][j][3]-playerposition[0][j][1])*(playerposition[0][j][3]-playerposition[0][j][1])); 
                 }
             }
+        }
+        else
+        {
+            playerposition[0][j][2]=playerposition[0][j][0];
+            playerposition[0][j][3]=playerposition[0][j][1];
         }
     }
 }
@@ -633,26 +669,41 @@ void throwCornerOutGoal()
 
 void spritepositionupdate()
 {
-    for(i=0;i<6;i++)
+    if(page_number==1 || page_number==2)
     {
-        iSetSpritePosition(&players[i],playerposition[1][i][0]-playerradius,playerposition[1][i][1]-playerradius);
-        iSetSpritePosition(&opponents[i],playerposition[0][i][0]-playerradius,playerposition[0][i][1]-playerradius);
-        if(i==0 || i==1)
-            iSetSpritePosition(&gk[i],gkpointer[i][0]-playerradius,gkpointer[i][1]-playerradius);
+        for(i=0;i<6;i++)
+        {
+            iSetSpritePosition(&players[i],playerposition[1][i][0]-playerradius,playerposition[1][i][1]-playerradius);
+            iSetSpritePosition(&opponents[i],playerposition[0][i][0]-playerradius,playerposition[0][i][1]-playerradius);
+            if(i==0 || i==1)
+                iSetSpritePosition(&gk[i],gkpointer[i][0]-playerradius,gkpointer[i][1]-playerradius);
+        }
+        iSetSpritePosition(&fball,ballpointer[0]-ballradius,ballpointer[1]-ballradius);
+        iSetSpritePosition(&pauseButtons,width-15,length-15);
     }
-    iSetSpritePosition(&fball,ballpointer[0]-ballradius,ballpointer[1]-ballradius);
-    iSetSpritePosition(&pauseButtons,width-15,length-15);
+    else if(page_number==3)
+    {
+        for(i=0;i<6;i++)
+        {
+            iSetSpritePosition(&players[i],penaltyPosition[1][i][0]-playerradius,penaltyPosition[1][i][1]-playerradius);
+            iSetSpritePosition(&opponents[i],penaltyPosition[0][i][0]-playerradius,penaltyPosition[0][i][1]-playerradius);
+            if(i==0 || i==1)
+                iSetSpritePosition(&gk[i],penaltygk[!i][0]-playerradius,penaltygk[!i][1]-playerradius);
+        }
+        iSetSpritePosition(&fball,penaltyBall[0]-ballradius,penaltyBall[1]-ballradius);
+        iSetSpritePosition(&pauseButtons,width-15,length-15);
+    }
 }
 
 void timeUpdater(){
-    printf("%d  %.3lf  %d %d\n",fps,timer,sec,minit);
+    //printf("%d  %.3lf  %d %d\n",fps,timer,sec,minit);
     if(fps!=0)
         timer=timer+(120.0/(fps));
     sec=timer/120;
     minit=timer/7200;
     if((page_number==1 || page_number==2) && !(ballstate==2 || ballstate==-2))
     {
-        gametime+=1;
+        gametime=gametime+(120.0/(fps));
     }
 }
 
@@ -1074,7 +1125,7 @@ void spriteshow()
 
 void backbutton()
 {
-    iShowLoadedImage(5,50, &backButton);
+    iShowLoadedImage(width-70,50, &backButton);
 }
 
 void drawfield()
@@ -1106,7 +1157,6 @@ void drawfield()
     iSetLineWidth(4);
     iLine(width/2-80,gallary,width/2+80,gallary);
     iLine(width/2-80,length-gallary,width/2+80,length-gallary);
-    drawScoreboard();
 }
 
 void functioncaller()
@@ -1114,17 +1164,18 @@ void functioncaller()
     
     if((int)timer%10==0)
     {
-        throwCornerOutGoal();
+        throwCornerOutGoal(); 
         activepassing();
         opponentpassing();
     }
     if((int)timer%5==0){
         if(!(ballstate==2 || ballstate==-2))
             chooseAndTakePosition();
-        if(ballstate!=2)
+        if(ballstate!=2 && ballstate!=-2)
+        {
             activeplayermoveing();
-        if(ballstate!=-2)
             opponentplayermoveing();
+        }
         gkmoving();
         ballposition();
     }
@@ -1139,6 +1190,241 @@ void chooselevel()
 
 }
 
+
+
+void resetPenaltyVariables()
+{
+    activeTeam=0;
+    gkSet=0;
+    gkDirection=1;
+    kicked=0;
+    penAcceleration[0]=0;
+    penAcceleration[1]=0;
+    memset(penScore, 0, sizeof(penScore));
+    penBallSpeed=penBallSpeedConstant;
+    barDiraction=1;
+    shootNumber=0;
+    penaltyscores[0]=0;
+    penaltyscores[1]=0;
+    hypo=1;
+    penaltyended=0;
+}
+
+void resetflags()
+{
+    activeTeam=1-activeTeam;
+    gkSet=0;
+    kicked=0;
+    speedFraction=50;
+}
+
+void gkAndPlayerPosition()
+{
+    if(!kicked)
+    {
+        penaltyBall[0]=penaltyPosition[activeTeam][5][0];
+        penaltyBall[1]=penaltyPosition[activeTeam][5][1];
+    }
+    penaltyPosition[activeTeam][5][0]=width/2;
+    penaltyPosition[activeTeam][5][1]=length - gallary - (length * .15);
+
+    penaltyPosition[!activeTeam][5][0]=width/2- pow(-1,activeTeam)*spacing*6;
+    penaltyPosition[!activeTeam][5][1]=length/2;
+    penaltygk[activeTeam][0]=width/6;
+    penaltygk[activeTeam][1]=length*15.0/16.0;
+    if(gkSet==0)
+    {
+        penaltygk[!activeTeam][0]=width/2;
+        penaltygk[!activeTeam][1]=length-gallary;
+        gkSet=1;
+    }
+    else
+    {
+        if(penaltygk[!activeTeam][0]>width/2+goalbar/2)
+        {
+            penaltygk[!activeTeam][0]=width/2+goalbar/2;
+            gkDirection=-1;
+        }
+        else if(penaltygk[!activeTeam][0]<width/2-goalbar/2)
+        {
+            penaltygk[!activeTeam][0]=width/2-goalbar/2;
+            gkDirection=1;
+        }
+        else
+        {
+            penaltygk[!activeTeam][0]+=gkDirection*penGkSpeed;
+        }
+    }
+}
+
+void penaltyBallMoving()
+{
+    if(kicked==1)
+    {
+        //if(!(penaltyBall[2]==0 || (penAcceleration[0]>0 && penaltyBall[2]>0) || (penAcceleration[0]<0 && penaltyBall[2]<0)))
+        {
+            penaltyBall[0]+=penaltyBall[2];
+            penaltyBall[2]+=penAcceleration[0];
+        }
+        //if(!(ballpointer[3]==0 || (penAcceleration[1]>0 && penaltyBall[3]>0) || (penAcceleration[1]<0 && penaltyBall[3]<0)))
+        {
+            penaltyBall[1]+=penaltyBall[3];
+            penaltyBall[3]+=penAcceleration[1];
+        }
+    }
+}
+
+void ballDirection(double x,double y)
+{
+    if(!kicked)
+    {
+        if(speedFraction>30)
+            penBallSpeed=(penBallSpeedConstant*speedFraction/100)+penBallSpeedConstant*0.5;
+        else
+            penBallSpeed=penBallSpeedConstant*speedFraction/100;
+        hypo=sqrt(pow((penaltyBall[0]-ballradius-x),2)+pow((penaltyBall[1]-ballradius-y),2));
+        if(hypo<1)
+            return;
+        penaltyBall[2]=penBallSpeed*(x-penaltyBall[0]+ballradius)/hypo;
+        penaltyBall[3]=penBallSpeed*(y-penaltyBall[1]+ballradius)/hypo;
+        penAcceleration[0]=0.3*acceleration*(x-penaltyBall[0]+ballradius)/hypo;
+        penAcceleration[1]=0.3*acceleration*(y-penaltyBall[1]+ballradius)/hypo;
+    }
+    kicked=1;
+}
+
+void penaltyScore()
+{
+    if(kicked==1)
+    {
+        if(checkcollision(penaltyBall[0],penaltyBall[1],penaltygk[!activeTeam][0],penaltygk[!activeTeam][1],(playerradius+ballradius)))
+        {
+            penScore[activeTeam][shootNumber]=-1;
+            if(activeTeam==1)
+                shootNumber+=1;
+            resetflags();
+            iDelay(2);
+        }
+        else
+        {
+            if(penaltyBall[1]-1.5*ballradius>=length-gallary && penaltyBall[0]+ballradius>=width/2-goalbar/2 && penaltyBall[0]-ballradius<=width/2+goalbar/2)
+            {
+                penScore[activeTeam][shootNumber]=1;
+                penaltyscores[activeTeam]++;
+                if(activeTeam==1)
+                    shootNumber+=1;
+                resetflags();
+                iDelay(1);
+            }
+            else if((abs((int)(penaltyBall[2]*10))<0.1 && abs((int)(penaltyBall[3]*10))<0.1))
+            {
+                penScore[activeTeam][shootNumber]=-1;
+                if(activeTeam==1)
+                    shootNumber+=1;
+                resetflags();
+                iDelay(1);
+            }
+            else if(penaltyBall[0]<gallary*2 || penaltyBall[0]>width-gallary*2 || penaltyBall[1]<length/2 || penaltyBall[1]>length )
+            {
+                penScore[activeTeam][shootNumber]=-1;
+                if(activeTeam==1)
+                    shootNumber+=1;
+                resetflags();
+                iDelay(1);
+            }
+        }
+    }
+}
+
+void drawscoremarks()
+{
+    iSetColor(255,255,0);
+    char score[10];
+    sprintf(score,"Yello  %d",penaltyscores[0]);
+    iTextAdvanced(1.5*gallary,100-5,score,0.1,1.5);
+    iSetColor(0,0,255);
+    sprintf(score,"Green %d",penaltyscores[1]);
+    iTextAdvanced(1.5*gallary,100-30-5,score,0.1,1.5);
+
+    for(int sc=0;sc<shootNumber+1;sc++)
+    {
+        if(penScore[0][sc]==-1)
+        {
+            iSetColor(255,0,0);
+            iFilledCircle((4*gallary+sc*30),100,9);
+        }
+        else if(penScore[0][sc]==1)
+        {
+            iSetColor(255,255,0);
+            iFilledCircle((4*gallary+sc*30),100,9);
+        }
+        if(penScore[1][sc]==-1)
+        {
+            iSetColor(255,0,0);
+            iFilledCircle((4*gallary+sc*30),100-30,9);
+        }
+        else if(penScore[1][sc]==1)
+        {
+            iSetColor(0,0,255);
+            iFilledCircle((4*gallary+sc*30),100-30,9);
+        }
+    }
+}
+
+void speedBar()
+{
+    if(speedFraction<=0.5)
+    {
+        speedFraction=1;
+        barDiraction=+1;
+    }
+    else if(speedFraction>=99.5)
+    {
+        speedFraction=99;
+        barDiraction=-1;
+    }
+    else
+    {
+        speedFraction=speedFraction+barDiraction*barspeed;
+    }
+}
+
+void drawSpeedBar()
+{
+    iSetColor(255,255,255);
+    iRectangle(width-2*gallary,length/2+barHieght/3,8,barHieght+2);
+    iSetColor(255*(speedFraction)/100,115,0);
+    iFilledRectangle(width-2*gallary+1,length/2+barHieght/3+1,6,barHieght*speedFraction/100);
+}
+
+int result()
+{
+    if(shootNumber==max_shoot)
+    {
+        iTextAdvanced(120,400," DRAW",0.5,3.5);
+    }
+    else if(shootNumber>=5 && penaltyscores[0]!=penaltyscores[1] && activeTeam==0 && kicked==0)
+    {
+        if(penaltyscores[0]>=penaltyscores[1])
+        {
+            iSetColor(255,255,0);
+        }
+        else if(penaltyscores[0]<penaltyscores[1])
+            iSetColor(0,0,255);
+        iTextAdvanced(120,400,"YOU WON",0.5,3.5);
+        backbutton();
+        penaltyended=1;
+        return 1;
+    }
+    else
+        return 0;
+
+}
+
+
+
+
+
 /*
 function iDraw() is called again and again by the system.
 */
@@ -1152,7 +1438,7 @@ void iDraw()
         if(timer<=coverpagetime)
             iShowImage(0,0,"opener.jpg");
         else
-            iShowImage(0,0,"navigation.jpg");
+            iShowImage(0,0,"newnavigation.jpg");
     }
     else if(page_number==11)
     {
@@ -1164,6 +1450,7 @@ void iDraw()
         drawfield();
         chooselevel();
         functioncaller();
+        drawScoreboard();
         spritepositionupdate();
         spriteshow();
     }
@@ -1173,15 +1460,33 @@ void iDraw()
         functioncaller();
         spritepositionupdate();
         spriteshow();
+        drawScoreboard();
     }
-
-    /*else if(page_number==3)
-
+    else if(page_number==3)
+    {
+        drawfield();
+        if(!result())
+        {
+            if((int)timer%2==0)
+                gkAndPlayerPosition();
+            if((int)timer%4==0)
+                penaltyBallMoving();
+            spritepositionupdate();
+            drawSpeedBar();
+        }
+        if((int)timer%2==0 &&  !kicked)
+            speedBar();
+        spriteshow();  
+        penaltyScore();
+        drawscoremarks();
+    }
     else if(page_number==4)
-
-    else if(page_number==5)*/
-
+    {}
+    else if(page_number==5)
+    {}
     else if(page_number==6)
+    {}
+    else if(page_number==7)
     {
         iShowImage(0,0,"exitpage.jpg");
         if(tracktime+75<=timer)
@@ -1226,41 +1531,31 @@ void iMouse(int button, int state, int mx, int my)
         // place your codes here
         if(page_number==0 && timer>coverpagetime)
         {
-            if(mx>=134 && mx<=405)
+            if(mx>=136 && mx<=401)
             {
-                if(my>=720-403  && my<=720-360)
+                if(my<=412  && my>=377)
                 {
                     page_number=1;
                     gametime=0;
                 }
-                else if(my>=720-450  && my<=720-408)
+                else if(my<=370  && my>=333)
                 {
                     page_number=2;
                 }
-                else if(my>=720-495  && my<=720-455)
+                else if(my<=328  && my>=290)
+                {
                     page_number=3;
-                else if(my>=720-542  && my<=720-502)
+                }
+                else if(my<=284  && my>=248)
                     page_number=4;
-                else if(my>=720-588  && my<=720-548)
+                else if(my<=241  && my>=205)
                     page_number=5;
-                else if(my>=720-635  && my<=720-594)
+                else if(my<=199  && my>=163)
                     page_number=6;
+                else if(my<=157  && my>=120 )
+                    page_number=7;
             }
             tracktime=timer;
-        }
-        else if(page_number==11)
-        {
-            if(mx>63 && mx<472)
-            {
-                if(my<720-196 && my>720-263)
-                    {level=1;page_number=1;resetvariables();}
-                else if(my<720-304 && my>720-368)
-                    {level=2;page_number=1;resetvariables();}
-                else if(my<720-400 && my>720-460)
-                    {level=3;page_number=1;resetvariables();}
-            }
-            else if(mx<65 && mx>5 && my<72 && my>50)
-                page_number=0;
         }
         else if(page_number==1 || page_number==2)
         {
@@ -1268,6 +1563,24 @@ void iMouse(int button, int state, int mx, int my)
             {
                 page_number=0;
                 gametime+=timer-tracktime;
+            }
+        }
+        else if(page_number==3)
+        {
+            if(mx<width && mx>width-20 && my<length && my>length-20)
+            {
+                page_number=0;
+                resetPenaltyVariables();
+            }
+            else
+                ballDirection(mx,my);
+            if(penaltyended==1)
+            {
+                if(mx>=width-70 && mx<=width-10 && my>=50 && my<=72)
+                {
+                    page_number=0;
+                    resetPenaltyVariables();
+                }
             }
         }
     }
